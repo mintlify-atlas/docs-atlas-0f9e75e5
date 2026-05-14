@@ -1,0 +1,91 @@
+---
+title: "Paso 6: Evaluación de competencias transversales VAP"
+description: "Responde el banco de preguntas de las 5 competencias del Marco VAP para que la IA calcule tu perfil de dominio y genere tu ruta académica personalizada."
+---
+
+En el paso 6 respondes el banco de preguntas basado en el **Marco VAP** (Validación de Aprendizajes Previos) de la Universidad Icesi. El sistema presenta una pregunta por cada una de las 5 competencias transversales evaluadas. Debes responder **todas** las competencias para poder enviar la evaluación y generar tu reporte.
+
+## Las 5 competencias VAP
+
+El Marco VAP define cinco competencias docentes core que el sistema evalúa de forma independiente. Cada una recibe un puntaje de 1.0 a 5.0 según el nivel de dominio identificado.
+
+| ID | Clave interna | Nombre | Descripción |
+|---|---|---|---|
+| C1 | `COMUNICACION_OE` | Comunicación Oral y Escrita en Contextos Educativos | Capacidad para interpretar y producir ideas claras, coherentes y significativas según un propósito comunicativo en contextos educativos. |
+| C2 | `INVESTIGACION_IE` | Investigación-Intervención en Asuntos Educativos | Capacidad para resolver un problema propio y relevante de la práctica docente a través de un proceso de investigación-intervención. |
+| C3 | `PRAXIS_TRANSF_PED` | Praxis y Transformación Pedagógica | Capacidad para transformar, de manera crítica y reflexiva, la práctica docente. |
+| C4 | `DISENO_EVAL_CURR` | Diseño y Evaluación Curricular | Capacidad para diseñar el proceso y la evaluación de proyectos curriculares. |
+| C5 | `USO_TIC_EDU` | Uso de TIC para Enriquecer Procesos Educativos | Capacidad para integrar crítica y efectivamente las Tecnologías de la Información y Comunicación para potenciar y transformar los procesos de enseñanza y aprendizaje. |
+
+## Flujo de la evaluación
+
+<Steps>
+  <Step title="Lee el contexto de cada pregunta">
+    Para las competencias C1 a C4, el sistema presenta un escenario contextual seguido de una pregunta de opción múltiple estilo Saber Pro. Lee el escenario con atención antes de seleccionar tu respuesta.
+
+    Las preguntas provienen del banco de preguntas base asociado al primer resultado de aprendizaje de cada competencia (`banco_preguntas_base[0]`).
+  </Step>
+  <Step title="Selecciona una opción de respuesta">
+    Haz clic en la opción que consideras correcta. La opción seleccionada se resalta con un borde azul y un indicador circular relleno. Solo puedes seleccionar una opción por pregunta.
+
+    Para la competencia **C5 – Uso de TIC**, el banco de preguntas está en desarrollo. El sistema presenta en su lugar una pregunta de reflexión con las opciones: Experto, Avanzado, Intermedio y Básico. Selecciona el nivel que mejor describe tu capacidad actual.
+  </Step>
+  <Step title="Responde las 5 competencias">
+    El sistema muestra las competencias en orden de C1 a C5, numeradas del 1 al 5 en la pantalla. Desplázate hacia abajo para ver y responder cada pregunta. El botón **Finalizar Evaluación y Generar Reporte** permanece deshabilitado mientras haya al menos una competencia sin respuesta.
+
+    <Warning>
+      El sistema incluye un temporizador visible en la parte superior del formulario. Completa la evaluación dentro del tiempo disponible para evitar interrupciones.
+    </Warning>
+  </Step>
+  <Step title="Envía la evaluación">
+    Cuando hayas respondido las 5 competencias, el botón **Finalizar Evaluación y Generar Reporte** se activa. Haz clic en él para enviar tus respuestas.
+
+    Si aún falta alguna respuesta, el sistema muestra el mensaje: _"Responde todas las preguntas de las 5 competencias para continuar"_ y el botón permanece inactivo.
+  </Step>
+  <Step title="Espera la generación del reporte">
+    Al enviar la evaluación, el sistema ejecuta dos llamadas consecutivas a Google Gemini AI:
+
+    1. **Evaluación VAP**: la IA analiza tu perfil completo (datos personales, formación, experiencia, motivaciones y respuestas de la evaluación) y calcula el puntaje de cada competencia.
+    2. **Generación de ruta académica**: con los puntajes calculados, la IA aplica un análisis de brechas (Gap Analysis) contra el catálogo de cursos y genera tu plan semestral adaptativo.
+
+    Cuando ambos procesos terminan, el sistema avanza automáticamente al paso 7 (reporte de resultados).
+  </Step>
+</Steps>
+
+## Criterios de evaluación y niveles de dominio
+
+La IA evalúa cada competencia y asigna un puntaje en la escala de 1.0 a 5.0. Cada nivel tiene un nombre y una descripción específica para cada competencia:
+
+| Puntaje | Nivel | Descripción general |
+|---|---|---|
+| 1.0 | **Novato** | Conocimiento o experiencia básica muy limitada en la competencia. |
+| 2.0 | **Principiante** | Manejo básico de conceptos y herramientas con experiencia emergente. |
+| 3.0 | **Competente** | Aplicación sistemática y adecuada al contexto con base teórica sólida. |
+| 4.0 | **Proficiente** | Dominio avanzado con capacidad de liderar procesos en la competencia. |
+| 5.0 | **Experto** | Referente en la competencia; genera nuevos enfoques y mentoriza a otros. |
+
+<Note>
+  Los puntajes intermedios (por ejemplo, 2.5 o 3.7) son posibles. La IA calibra el nivel según el conjunto completo de información del perfil, no únicamente según la respuesta a la pregunta de evaluación.
+</Note>
+
+## Qué evalúa la IA en cada competencia
+
+Junto con la respuesta a la pregunta de opción múltiple, la IA considera el contexto completo de tu perfil al calcular el puntaje de cada competencia:
+
+- **C1 – Comunicación**: tu cargo, empresa, resumen profesional y experiencia en docencia o producción de textos educativos.
+- **C2 – Investigación**: tu formación académica, proyectos relevantes y experiencia en investigación o práctica docente reflexiva.
+- **C3 – Praxis pedagógica**: tu respuesta sobre transformación pedagógica (paso 4) y tu trayectoria profesional en instituciones educativas.
+- **C4 – Diseño curricular**: tu respuesta sobre diseño de proyectos curriculares (paso 4), área de profundización y años de experiencia.
+- **C5 – Uso de TIC**: tu respuesta sobre integración de TIC (paso 4), habilidades técnicas y proyectos relevantes relacionados con tecnología educativa.
+
+<Tip>
+  Completar con detalle los pasos anteriores (especialmente el paso 4 de experiencia específica y el paso 5 de motivaciones) mejora la precisión de los puntajes que la IA asigna en cada competencia.
+</Tip>
+
+## Siguiente paso
+
+Después de enviar la evaluación, el sistema genera tu reporte completo con el radar de competencias, el promedio VAP y tu ruta académica personalizada.
+
+<Card title="Radar de competencias y resultados" icon="chart-pie" href="/guide/competency-radar">
+  Visualiza tus puntajes VAP en un gráfico radar y revisa el análisis detallado por competencia.
+</Card>

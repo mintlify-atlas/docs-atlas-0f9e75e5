@@ -1,0 +1,109 @@
+---
+title: "Catálogo de cursos: interfaz Course y campos VAP"
+description: "La interfaz TypeScript Course y el campo competencias_VAP_primarias que conecta los cursos con las competencias C1–C5 usadas en el Gap Analysis de RAP-Rec."
+---
+
+El catálogo de cursos es el conjunto de materias de posgrado que RAP-Rec utiliza como universo de selección durante el Gap Analysis. Cada curso se describe mediante la interfaz TypeScript `Course`, definida en `src/types.ts`, y se almacena en el array `COURSE_CATALOG` exportado desde `src/data/courses.ts`.
+
+## Interfaz TypeScript `Course`
+
+```typescript
+interface Course {
+  id_curso: string;
+  nombre: string;
+  codigo?: string | null;
+  creditos: number;
+  semestre?: number | null;
+  area_tematica?: string | null;
+  descripcion?: string | null;
+  objetivos: string[];
+  competencias_declaradas: string[];
+  resultados_aprendizaje: string[];
+  contenidos: { unidad: string | null; temas: string[] }[];
+  temas_clave: string[];
+  palabras_clave: string[];
+  programa: string;
+  nivel_programa: string;
+  competencias_VAP_primarias?: string[];
+}
+```
+
+## Descripción de cada campo
+
+| Campo | Tipo | Obligatorio | Descripción |
+|-------|------|-------------|-------------|
+| `id_curso` | `string` | Sí | Identificador único del curso, ej. `"CURSO_085EF97C"`. Se usa como referencia en `cursos_sugeridos` de la recomendación. |
+| `nombre` | `string` | Sí | Nombre completo del curso tal como aparece en el plan de estudios. |
+| `codigo` | `string \| null` | No | Código oficial del curso en el sistema académico de Icesi, ej. `"60078"`. Puede ser nulo si aún no está asignado. |
+| `creditos` | `number` | Sí | Número de créditos académicos del curso. |
+| `semestre` | `number \| null` | No | Semestre sugerido dentro del plan de estudios (1, 2, 3…). Nulo si el curso no tiene semestre fijo. |
+| `area_tematica` | `string \| null` | No | Área temática del curso, ej. `"Lenguaje"`, `"Educación"`. |
+| `descripcion` | `string \| null` | No | Texto descriptivo del curso. El motor trunca este campo a los primeros 100 caracteres al pasarlo al modelo de IA. |
+| `objetivos` | `string[]` | Sí | Lista de objetivos de aprendizaje. Puede ser un array vacío. |
+| `competencias_declaradas` | `string[]` | Sí | Competencias en lenguaje libre tal como las declara el syllabus. No se usa para el cruce automático. |
+| `resultados_aprendizaje` | `string[]` | Sí | Resultados de aprendizaje esperados al finalizar el curso. Puede ser un array vacío. |
+| `contenidos` | `{ unidad: string \| null; temas: string[] }[]` | Sí | Unidades temáticas del curso con sus temas. Puede ser un array vacío. |
+| `temas_clave` | `string[]` | Sí | Palabras o frases que resumen los temas principales del curso. |
+| `palabras_clave` | `string[]` | Sí | Términos de búsqueda o clasificación del curso. |
+| `programa` | `string` | Sí | Nombre del programa al que pertenece el curso, ej. `"Maestría en Educación"`. |
+| `nivel_programa` | `string` | Sí | Nivel del programa: `"Maestría"` o `"Especialización"`. |
+| `competencias_VAP_primarias` | `string[]` | No | **Campo crítico para el motor de recomendación.** Lista de identificadores C1–C5 que este curso fortalece. Ver sección siguiente. |
+
+## El campo `competencias_VAP_primarias`
+
+`competencias_VAP_primarias` es el enlace directo entre el catálogo y el motor de Gap Analysis. Contiene uno o más identificadores del Marco VAP (`"C1"`, `"C2"`, `"C3"`, `"C4"`, `"C5"`) que indican qué competencias desarrolla el curso.
+
+Cuando el algoritmo de recomendación busca cursos para cerrar una brecha, filtra el catálogo por este campo: si alguno de los valores en `competencias_VAP_primarias` coincide con una competencia cuyo puntaje es menor a 4.0, el curso se convierte en candidato.
+
+**Ejemplo:** el curso *Diseño Microcurricular* tiene:
+
+```typescript
+{
+  id_curso: "CURSO_4FD684F1",
+  nombre: "Diseño Microcurricular",
+  competencias_VAP_primarias: ["C4", "C2"],
+  // ...
+}
+```
+
+Si el aspirante obtuvo C4 = 3.2 y C2 = 2.8, ambas son brechas activas y este curso es candidato. Si además C2 tiene el puntaje más bajo, el curso recibe mayor prioridad en la selección.
+
+<Info>
+  El campo `competencias_declaradas` contiene las competencias en lenguaje libre del syllabus original (ej. `"Diseño y evaluación curricular"`). **Solo** `competencias_VAP_primarias` usa los identificadores C1–C5 y es el que lee el motor de recomendación.
+</Info>
+
+## Cómo el catálogo llega al modelo de IA
+
+La función `getAIRecommendation` en `src/services/gemini.ts` transforma el catálogo antes de enviarlo al modelo para reducir el tamaño del prompt. Solo incluye cinco campos por curso:
+
+```typescript
+const catalogPrompt = JSON.stringify(COURSE_CATALOG.map(c => ({
+  id: c.id_curso,
+  nombre: c.nombre,
+  competencias: c.competencias_VAP_primarias,
+  desc: c.descripcion?.substring(0, 100),
+  semestre: c.semestre
+})));
+```
+
+El modelo recibe esta versión reducida junto con la instrucción de cruzar `competencias` con las brechas del aspirante y seleccionar como máximo 4 IDs de curso para `cursos_sugeridos`.
+
+## Cursos disponibles en el catálogo
+
+El catálogo actual en `src/data/courses.ts` incluye 9 cursos distribuidos en dos programas:
+
+| ID | Nombre | Programa | Créditos | Semestre | Competencias VAP |
+|----|--------|----------|----------|----------|-----------------|
+| `CURSO_085EF97C` | Comunicación efectiva en el aula | Especialización en Docencia Universitaria | 2 | 1 | C1, C3 |
+| `CURSO_4FD684F1` | Diseño Microcurricular | Especialización en Docencia Universitaria | 3 | 2 | C4, C2 |
+| `CURSO_5E1D8FB1` | Introducción a la docencia universitaria | Especialización en Docencia Universitaria | 1 | 2 | C3 |
+| `CURSO_F4E92379` | La evaluación de los aprendizajes | Maestría en Educación | 2 | — | C4, C5 |
+| `CURSO_36DFE354` | Pedagogía Creativa | Maestría en Educación | 2 | — | C3 |
+| `CURSO_DAF631A9` | Contextos IA + TIC en educación | Maestría en Educación | 2 | — | C5, C3 |
+| `CURSO_59B6A6C4` | Investigación | Maestría en Educación | 2 | — | C2 |
+| `CURSO_22AE5C83` | Arquitecturas del Aprendizaje I | Maestría en Educación | 3 | — | C2, C5, C3 |
+| `CURSO_9F894252` | Herramientas IA+TIC II | Maestría en Educación | 3 | — | C5 |
+
+<Tip>
+  Para entender cómo el motor prioriza estos cursos según el puntaje VAP del aspirante, consulta [Análisis de brecha](/reference/gap-analysis).
+</Tip>

@@ -1,0 +1,219 @@
+---
+title: "Arquitectura de RAP-Rec: SPA React con IA en cliente"
+description: "RAP-Rec es una SPA React + Vite sin backend. La IA corre en el navegador vía SDK Gemini. Máquina de estados de 7 pasos e interfaces TypeScript del dominio."
+---
+
+RAP-Rec es una **Single Page Application (SPA)** construida con React y Vite. Toda la lógica de negocio, el procesamiento de documentos y las llamadas a la IA de Google Gemini se ejecutan directamente en el navegador del aspirante — el sistema no tiene servidor backend propio.
+
+## Visión general
+
+<CardGroup cols={3}>
+  <Card title="Sin backend" icon="server">
+    Las llamadas a Gemini API se realizan desde el navegador con el SDK `@google/genai`. No existe un servidor intermediario.
+  </Card>
+  <Card title="Estado en memoria" icon="database">
+    El estado global vive en el componente `App` mediante hooks de React. No se persiste en disco entre sesiones.
+  </Card>
+  <Card title="Orquestador único" icon="sitemap">
+    `src/App.tsx` actúa como único orquestador: gestiona el estado, el enrutamiento de pasos y el ciclo de vida de las llamadas a la IA.
+  </Card>
+</CardGroup>
+
+## Estructura de directorios
+
+```
+src/
+├── App.tsx               # Orquestador principal y máquina de estados
+├── main.tsx              # Punto de entrada React (StrictMode)
+├── types.ts              # Interfaces TypeScript del dominio
+├── index.css             # Estilos globales y tokens de diseño Icesi
+├── components/           # Componentes de interfaz de usuario
+├── services/
+│   └── gemini.ts         # Integración con Google Gemini AI
+└── data/
+    ├── competencies.ts   # Definición de las 5 competencias VAP
+    ├── courses.ts        # Catálogo de cursos de posgrado
+    └── questions.json    # Banco de preguntas de evaluación por competencia
+```
+
+## Interfaces TypeScript
+
+Las siguientes interfaces, definidas en `src/types.ts`, representan los objetos del dominio que fluyen por el sistema durante una sesión.
+
+### `Course` — Curso del catálogo
+
+```typescript
+export interface Course {
+  id_curso: string;
+  nombre: string;
+  codigo?: string | null;
+  creditos: number;
+  semestre?: number | null;
+  area_tematica?: string | null;
+  descripcion?: string | null;
+  objetivos: string[];
+  competencias_declaradas: string[];
+  resultados_aprendizaje: string[];
+  contenidos: { unidad: string | null; temas: string[] }[];
+  temas_clave: string[];
+  palabras_clave: string[];
+  programa: string;
+  nivel_programa: string;
+  competencias_VAP_primarias?: string[];
+}
+```
+
+### `Competency` — Competencia VAP
+
+```typescript
+export interface Competency {
+  id: string;
+  clave: string;
+  nombre: string;
+  descripcion: string;
+  niveles: {
+    nivel: number;
+    nombre: string;
+    descripcion: string;
+  }[];
+}
+```
+
+### `UserProfile` — Perfil del aspirante
+
+```typescript
+export interface UserProfile {
+  id: string; // UUID
+  nombre: string;
+  email: string;
+  phone: string;
+
+  // Trayectoria profesional
+  years_experience: number;
+  current_position: string;
+  empresa: string;
+  industry: string;
+  education_level: string;
+  technical_skills: string[];
+  certifications: string[];
+  relevant_projects: string[];
+
+  // Campos específicos de VAP-Rec
+  area_profundizacion: string;
+  contexto_aplicacion: string;
+  objetivo_profesional: string;
+  motivation: string;
+
+  // Opcionales: enriquecidos por la IA de extracción
+  resumen?: string;
+  formacion?: {
+    titulo: string;
+    institucion: string;
+    anio: string;
+    nivel: string;
+  }[];
+  nivel_jerarquico?: string;
+  respuestas_experiencia?: {
+    transformacion_pedagogica?: string;
+    diseño_curricular?: string;
+    integracion_tic?: string;
+  };
+}
+```
+
+### `VAPEvaluation` — Resultado por competencia
+
+```typescript
+export interface VAPEvaluation {
+  competencia_id: string;
+  puntaje: number;       // Escala 1.0 – 5.0
+  nivel: string;         // "Novato" | "Competente" | "Proficiente" | "Experto"
+  justificacion: string; // Análisis generado por Gemini
+}
+```
+
+### `AppState` — Estado global de la aplicación
+
+```typescript
+export interface AppState {
+  step: number;                    // 1 – 7
+  selectedProgram: string | null;
+  profile: UserProfile | null;
+  evaluation: VAPEvaluation[];
+  recommendations: {
+    student_view: any[];
+    director_view: any;
+  } | null;
+}
+```
+
+## La máquina de estados de 7 pasos
+
+`App.tsx` implementa la navegación como una variable `step` que determina qué vista renderiza el componente principal. Cada paso tiene una responsabilidad única y bien delimitada.
+
+<Steps>
+  <Step title="Paso 1 — Selección del programa">
+    El aspirante elige uno de los 4 programas de posgrado disponibles (`PROGRAMS`). Al hacer clic en una tarjeta, `selectedProgram` se actualiza y el sistema avanza al paso 2.
+  </Step>
+  <Step title="Paso 2 — Carga de perfil">
+    El aspirante puede subir su CV (PDF o DOCX), cargar un perfil de demostración, o completar el formulario manualmente. Si carga un archivo, se invoca `extractProfile()` en `src/services/gemini.ts` y, al terminar, `profile` se actualiza y se avanza al paso 3.
+  </Step>
+  <Step title="Paso 3 — Verificación de formación">
+    El aspirante revisa y corrige los datos extraídos: nombre, datos de contacto, trayectoria profesional y formación académica. Los campos son editables directamente sobre el estado `profile`.
+  </Step>
+  <Step title="Paso 4 — Experiencia específica">
+    El aspirante responde 3 preguntas sobre transformación pedagógica, diseño curricular e integración de TIC. Las respuestas se almacenan en `specificAnswers` y también alimentan el prompt de evaluación VAP.
+  </Step>
+  <Step title="Paso 5 — Proyección e intereses">
+    El aspirante declara su área de profundización, contexto de aplicación, meta profesional a 2 años y motivación para el programa. Estos valores enriquecen `profile` y personalizan el prompt de recomendaciones.
+  </Step>
+  <Step title="Paso 6 — Evaluación VAP">
+    El aspirante responde una pregunta por cada una de las 5 competencias del Marco VAP. Una vez respondidas todas, el botón de envío se habilita. Al presionarlo, se llama en secuencia a `evaluateVAP()` y a `getAIRecommendation()`, y el sistema avanza al paso 7.
+  </Step>
+  <Step title="Paso 7 — Reporte de resultados">
+    Se muestran el radar de competencias (Chart.js), el promedio VAP, el plan semestral adaptativo y la ruta académica sugerida. Mediante la **Vista Director**, un segundo panel muestra el análisis técnico generado para los directores de programa.
+  </Step>
+</Steps>
+
+## Flujo de datos
+
+El siguiente diagrama describe cómo los datos viajan desde la entrada del aspirante hasta las recomendaciones finales.
+
+<Steps>
+  <Step title="Entrada del documento">
+    El aspirante sube un archivo PDF o DOCX. `pdfjs-dist` extrae el texto de documentos PDF página por página; `mammoth` extrae el texto de documentos Word. El texto crudo se trunca a 8 000 caracteres antes de enviarse a la IA.
+  </Step>
+  <Step title="Extracción de perfil con IA">
+    `extractProfile()` envía el texto al modelo `gemini-3-flash-preview` con temperatura 0.1 y `responseMimeType: "application/json"`. Gemini devuelve un objeto `UserProfile` estructurado que se sanitiza y almacena en el estado `profile`.
+  </Step>
+  <Step title="Evaluación de competencias VAP">
+    `evaluateVAP()` construye un prompt con el perfil del aspirante, sus respuestas a las preguntas de experiencia y la definición completa de las 5 competencias VAP (`VAP_COMPETENCIES`). Gemini devuelve un array de objetos `VAPEvaluation` con puntaje (1.0–5.0), nivel y justificación por competencia.
+  </Step>
+  <Step title="Cruce con el catálogo de cursos">
+    `getAIRecommendation()` envía los puntajes VAP junto con un resumen del catálogo de cursos (`COURSE_CATALOG`). La IA identifica las brechas (competencias con puntaje menor a 4.0) y selecciona los cursos cuyas `competencias_VAP_primarias` coincidan con esas brechas.
+  </Step>
+  <Step title="Visualización de resultados">
+    El componente de resultados (paso 7) consume `evaluation` para trazar el radar de Chart.js y consume `recommendations` para mostrar el plan semestral, la lista de cursos sugeridos y el análisis del director.
+  </Step>
+</Steps>
+
+<Note>
+  Todas las llamadas a Gemini se realizan directamente desde el navegador del usuario. La `GEMINI_API_KEY` se inyecta en tiempo de compilación a través de Vite (`process.env.GEMINI_API_KEY`). Consulta [Configuración](/reference/configuration) para conocer cómo configurar la clave.
+</Note>
+
+## Referencias relacionadas
+
+<CardGroup cols={2}>
+  <Card title="Stack tecnológico" icon="layer-group" href="/reference/tech-stack">
+    Dependencias exactas con versiones y justificación de cada tecnología elegida.
+  </Card>
+  <Card title="Configuración" icon="gear" href="/reference/configuration">
+    Variables de entorno, comandos de arranque y parámetros del servidor de desarrollo.
+  </Card>
+  <Card title="Integración con Gemini" icon="robot" href="/reference/gemini-integration">
+    Detalles del SDK `@google/genai`, modelo usado y lógica de reintentos.
+  </Card>
+  <Card title="Extracción de perfil" icon="file-import" href="/reference/profile-extraction">
+    Prompt de extracción, temperatura y sanitización del objeto `UserProfile`.
+  </Card>
+</CardGroup>

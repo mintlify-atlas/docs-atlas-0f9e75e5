@@ -1,0 +1,106 @@
+---
+title: "Radar de competencias VAP en el reporte final"
+description: "Aprende a leer el gráfico de radar que muestra tus cinco puntajes VAP, el Promedio VAP calculado y las bandas de nivel que determinan tu ruta académica."
+---
+
+El radar de competencias es la primera visualización que encuentras en el paso 7 (Reporte). Te muestra de un vistazo tu nivel de dominio en cada una de las cinco competencias del Marco VAP y señala con precisión las áreas donde existen brechas que impulsan las recomendaciones de cursos.
+
+## Las cinco competencias del Marco VAP
+
+La evaluación cubre las siguientes competencias, identificadas con un código `C1`–`C5`:
+
+| Código | Clave interna         | Nombre completo                                            |
+|--------|-----------------------|------------------------------------------------------------|
+| C1     | COMUNICACION\_OE      | Comunicación Oral y Escrita en Contextos Educativos        |
+| C2     | INVESTIGACION\_IE     | Investigación-Intervención en Asuntos Educativos           |
+| C3     | PRAXIS\_TRANSF\_PED   | Praxis y Transformación Pedagógica                         |
+| C4     | DISENO\_EVAL\_CURR    | Diseño y Evaluación Curricular                             |
+| C5     | USO\_TIC\_EDU         | Uso de TIC para Enriquecer Procesos Educativos             |
+
+Cada competencia se mapea a un vértice del radar. El eje radial va de **0 a 5** con marcas en cada número entero. Cuanto más cerca del borde exterior se ubica un punto, mayor es tu dominio en esa competencia.
+
+## Cómo se calcula el Promedio VAP
+
+El sistema suma los cinco puntajes individuales (`puntaje`) y los divide entre cinco. El resultado se muestra con un decimal dentro del círculo central ubicado a la derecha del radar:
+
+```
+Promedio VAP = (puntaje_C1 + puntaje_C2 + puntaje_C3 + puntaje_C4 + puntaje_C5) / 5
+```
+
+Este valor representa tu nivel global de dominio pedagógico antes de iniciar el programa.
+
+## Bandas de nivel
+
+El evaluador de IA asigna un nivel textual a cada competencia según el puntaje obtenido:
+
+| Rango de puntaje | Nivel      |
+|------------------|------------|
+| 1.0 – 2.5        | Novato     |
+| 3.0 – 3.9        | Competente |
+| 4.0 – 4.5        | Proficiente|
+| 4.6 – 5.0        | Experto    |
+
+<Note>
+  Los valores entre 2.6 y 2.9 no están definidos explícitamente como banda independiente; el sistema los evalúa en contexto y los asigna a la banda más cercana dentro de la justificación narrativa.
+</Note>
+
+## Cómo interpretar el radar
+
+Las áreas del polígono que quedan por debajo del umbral de **4.0** indican brechas de competencia. El motor de recomendaciones cruza esas brechas con el catálogo de cursos para seleccionar las asignaturas que más contribuyen a cerrarlas.
+
+<Steps>
+  <Step title="Identifica los vértices con puntajes bajos">
+    Observa los vértices del polígono que están más cerca del centro (puntaje menor a 4.0). Esas competencias son las que el sistema prioriza para recomendarte cursos.
+  </Step>
+  <Step title="Lee la justificación de cada competencia">
+    Debajo del radar, en la vista del director, aparece una barra de progreso por competencia junto con el texto del campo `justificacion`. Este texto explica en lenguaje técnico por qué la IA asignó ese puntaje, integrando tu perfil y tus respuestas a las preguntas de evaluación.
+  </Step>
+  <Step title="Relaciona los puntajes con la ruta sugerida">
+    Cada curso en la sección **Ruta Académica Sugerida** indica las competencias VAP primarias que desarrolla. Verifica que los cursos recomendados correspondan precisamente a las competencias donde obtuviste puntajes menores a 4.0.
+  </Step>
+</Steps>
+
+## La interfaz `VAPEvaluation`
+
+Cada objeto de evaluación que produce la IA tiene la siguiente estructura TypeScript:
+
+```typescript
+interface VAPEvaluation {
+  competencia_id: string;  // "C1" | "C2" | "C3" | "C4" | "C5"
+  puntaje: number;         // valor entre 1.0 y 5.0
+  nivel: string;           // "Novato" | "Competente" | "Proficiente" | "Experto"
+  justificacion: string;   // análisis narrativo que integra perfil y respuestas
+}
+```
+
+El arreglo completo de evaluaciones se pasa a la función `getAIRecommendation` junto con el perfil del aspirante para construir el plan semestral y los cursos sugeridos.
+
+## Criterios de evaluación aplicados por la IA
+
+El evaluador (`evaluateVAP`) instruye al modelo Gemini con los siguientes criterios para asignar puntajes:
+
+- **1.0 – 2.5 (Novato)**: el aspirante comunica o aplica la competencia de forma básica, con dificultades de coherencia o sin un análisis profundo del contexto.
+- **3.0 – 3.9 (Competente)**: diseña, evalúa e implementa propuestas de manera sistemática y contextualizada, con fundamentación teórica adecuada.
+- **4.0 – 4.5 (Proficiente)**: lidera procesos, innova y genera impacto documentado; integra reflexión profunda y continua en su práctica.
+- **4.6 – 5.0 (Experto)**: es referente en la competencia, genera conocimiento nuevo y tiene capacidad de diseminar o escalar sus enfoques.
+
+<Tip>
+  Si tu Promedio VAP es menor a 3.0 en varias competencias, el plan semestral adaptativo incluirá un mayor número de materias en estado **sugerida** para fortalecer las áreas críticas antes de las asignaturas nucleares del programa.
+</Tip>
+
+## Páginas relacionadas
+
+<CardGroup cols={2}>
+  <Card title="Marco VAP" icon="brain" href="/reference/vap-framework">
+    Descripción completa de cada competencia y sus niveles de dominio.
+  </Card>
+  <Card title="Ruta académica" icon="route" href="/guide/academic-route">
+    Cómo leer el plan semestral y los cursos sugeridos generados a partir del radar.
+  </Card>
+  <Card title="Análisis de brechas" icon="chart-bar" href="/reference/gap-analysis">
+    Lógica de cruce entre puntajes VAP y el catálogo de cursos.
+  </Card>
+  <Card title="Integración con Gemini" icon="sparkles" href="/reference/gemini-integration">
+    Detalle técnico de las funciones `evaluateVAP` y `getAIRecommendation`.
+  </Card>
+</CardGroup>

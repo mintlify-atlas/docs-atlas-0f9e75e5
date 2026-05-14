@@ -1,0 +1,150 @@
+---
+title: "Análisis de brecha: algoritmo de recomendación VAP"
+description: "Cómo el Gap Analysis de RAP-Rec cruza puntajes VAP menores a 4.0 con el catálogo de cursos para seleccionar hasta 4 materias y construir el plan semestral."
+---
+
+El análisis de brecha (*Gap Analysis*) es el núcleo del motor de recomendación de RAP-Rec. Después de que el sistema evalúa las 5 competencias VAP del aspirante, este algoritmo identifica las áreas de mejora y selecciona los cursos del catálogo que mejor las cierran. El resultado es un plan semestral personalizado con hasta cuatro cursos sugeridos y una justificación técnica para el director del programa.
+
+## Qué es una brecha en el contexto VAP-Rec
+
+Una **brecha** es cualquier competencia (C1–C5) cuyo puntaje en la evaluación VAP sea **menor a 4.0**. Competencias con puntaje igual o superior a 4.0 se consideran suficientemente desarrolladas para el nivel de posgrado; sus cursos asociados pueden marcarse como **exonerados**.
+
+## Pasos del algoritmo
+
+El algoritmo se ejecuta dentro de la función `getAIRecommendation` en `src/services/gemini.ts`:
+
+<Steps>
+  <Step title="Recibir la entrada">
+    La función recibe dos entradas principales:
+
+    - **`evaluation`** — array de `VAPEvaluation[]` con el puntaje (0.0–5.0) y nivel de cada competencia C1–C5.
+    - **`profile`** — objeto `UserProfile` con los datos profesionales, el área de profundización y el objetivo profesional del aspirante.
+  </Step>
+
+  <Step title="Identificar brechas">
+    El motor busca todas las competencias con `puntaje < 4.0`. Estos identificadores (`C1`–`C5`) forman la lista de brechas activas que guían el cruce con el catálogo.
+  </Step>
+
+  <Step title="Cruzar brechas con el catálogo">
+    Para cada curso del catálogo, el sistema revisa el campo `competencias_VAP_primarias`. Si alguno de los identificadores en ese campo coincide con una brecha activa, el curso es candidato a ser sugerido.
+  </Step>
+
+  <Step title="Priorizar por criticidad">
+    Entre los cursos candidatos, el motor da prioridad a los que abordan la competencia con el **puntaje más bajo** (brecha más crítica). Esto garantiza que el plan semestral atiende primero las necesidades más urgentes del aspirante.
+  </Step>
+
+  <Step title="Seleccionar hasta 4 cursos">
+    El sistema selecciona un máximo de **4 cursos sugeridos** (`cursos_sugeridos`). Superar este límite aumentaría la carga académica más allá de lo razonable para un proceso de flexibilización.
+  </Step>
+
+  <Step title="Generar el plan semestral completo">
+    El modelo construye `plan_semestral` con **todas** las materias del programa, clasificando cada una con un estado: `regular`, `exonerada` o `sugerida`. También genera un mensaje motivacional para el estudiante y un análisis técnico para el director.
+  </Step>
+</Steps>
+
+## Pseudocódigo del cruce
+
+El siguiente fragmento ilustra la lógica de cross-matching tal como la ejecuta el modelo de IA a partir del prompt en `src/services/gemini.ts`:
+
+```typescript
+// Entrada
+const evaluation: VAPEvaluation[];   // puntajes C1–C5
+const catalog: Course[];             // catálogo completo de cursos
+
+// Paso 1: identificar brechas
+const brechas = evaluation
+  .filter(ev => ev.puntaje < 4.0)
+  .sort((a, b) => a.puntaje - b.puntaje); // más crítica primero
+
+// Paso 2: encontrar cursos candidatos
+const candidatos = catalog.filter(curso =>
+  curso.competencias_VAP_primarias?.some(
+    comp => brechas.some(b => b.competencia_id === comp)
+  )
+);
+
+// Paso 3: priorizar por criticidad (brecha de menor puntaje primero)
+const ordenados = candidatos.sort((a, b) => {
+  const puntoA = Math.min(
+    ...a.competencias_VAP_primarias!.map(
+      c => brechas.find(b => b.competencia_id === c)?.puntaje ?? 5
+    )
+  );
+  const puntoB = Math.min(
+    ...b.competencias_VAP_primarias!.map(
+      c => brechas.find(b => b.competencia_id === c)?.puntaje ?? 5
+    )
+  );
+  return puntoA - puntoB;
+});
+
+// Paso 4: seleccionar máximo 4 cursos
+const cursos_sugeridos = ordenados.slice(0, 4).map(c => c.id_curso);
+```
+
+<Note>
+  Este pseudocódigo representa la lógica descrita en el prompt del sistema. El modelo de Gemini ejecuta el razonamiento internamente; no hay un bucle explícito en el código TypeScript de la aplicación.
+</Note>
+
+## Estructura de salida
+
+`getAIRecommendation` devuelve un objeto JSON con cuatro campos principales:
+
+```json
+{
+  "mensaje_estudiante": "Mensaje motivador personalizado basado en el área de profundización del aspirante.",
+  "cursos_sugeridos": ["CURSO_085EF97C", "CURSO_59B6A6C4"],
+  "plan_semestral": [
+    {
+      "semestre": 1,
+      "materias": [
+        {
+          "nombre": "Comunicación efectiva en el aula",
+          "estado": "sugerida",
+          "justificacion": "Fortalece C1 (puntaje 2.8), competencia con mayor brecha detectada."
+        },
+        {
+          "nombre": "Diseño Microcurricular",
+          "estado": "regular",
+          "justificacion": "Materia obligatoria del plan de estudios."
+        }
+      ]
+    },
+    {
+      "semestre": 2,
+      "materias": [
+        {
+          "nombre": "Investigación",
+          "estado": "exonerada",
+          "justificacion": "C2 supera el umbral de 4.0 según evaluación VAP."
+        }
+      ]
+    }
+  ],
+  "analisis_director": "Se sugieren los cursos CURSO_085EF97C y CURSO_59B6A6C4 para fortalecer las brechas detectadas en C1 y C2, permitiendo la flexibilización de los mismos en la ruta de posgrado."
+}
+```
+
+## Estados de materia
+
+El campo `estado` de cada materia en `plan_semestral` puede tomar tres valores:
+
+| Estado | Significado |
+|--------|-------------|
+| `regular` | Materia obligatoria del plan de estudios sin modificación. El aspirante la cursa normalmente. |
+| `exonerada` | La competencia asociada supera 4.0; se propone al director eximir al aspirante de cursarla. |
+| `sugerida` | La materia refuerza una brecha detectada; se incorpora al plan del aspirante en sustitución o adición. |
+
+<Warning>
+  Los estados `exonerada` y `sugerida` son recomendaciones del sistema. La aprobación final de la flexibilización curricular corresponde al director del programa según la reglamentación de la Universidad Icesi.
+</Warning>
+
+## Cómo el modelo genera las justificaciones
+
+El prompt del sistema instruye al modelo a redactar la `justificacion` de cada materia referenciando explícitamente los identificadores de competencia (C1–C5) y el puntaje obtenido. Para `analisis_director`, el prompt solicita un párrafo técnico que conecte los cursos sugeridos con las brechas específicas, con lenguaje orientado al cuerpo docente del programa.
+
+El campo `mensaje_estudiante` es motivacional y se personaliza con el valor de `profile.area_profundizacion` del aspirante.
+
+<Tip>
+  Para entender la estructura completa del catálogo de cursos y el campo `competencias_VAP_primarias`, consulta [Catálogo de cursos](/reference/course-catalog).
+</Tip>

@@ -1,0 +1,319 @@
+---
+title: "Integración con Google Gemini AI en RAP-Rec"
+description: "Referencia de extractProfile, evaluateVAP y getAIRecommendation: firmas, parámetros, configuración del modelo y política de reintentos del SDK @google/genai."
+---
+
+El módulo `src/services/gemini.ts` centraliza toda la comunicación con la API de Google Gemini. Exporta tres funciones asíncronas —`extractProfile`, `evaluateVAP` y `getAIRecommendation`— y una función auxiliar interna, `parseJSONResponse`, que garantiza la extracción robusta de JSON de las respuestas del modelo.
+
+## Configuración del cliente
+
+RAP-Rec utiliza el SDK oficial `@google/genai` (no `@google/generative-ai`). El cliente se inicializa una sola vez al cargar el módulo:
+
+```typescript
+import { GoogleGenAI } from "@google/genai";
+
+const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+const MODEL_NAME = "gemini-3-flash-preview";
+```
+
+<Note>
+  La variable de entorno `GEMINI_API_KEY` debe estar disponible en el proceso que ejecuta la aplicación. Si no está definida, el módulo emite una advertencia en consola pero no lanza excepción en tiempo de inicialización; el error ocurre al primer llamado al modelo.
+</Note>
+
+## Funciones exportadas
+
+### `extractProfile`
+
+Analiza el texto de una hoja de vida y devuelve un objeto `UserProfile` estructurado.
+
+```typescript
+export const extractProfile = async (
+  text: string,
+  retries = 2
+): Promise<UserProfile>
+```
+
+**Parámetros**
+
+| Parámetro | Tipo | Descripción |
+|-----------|------|-------------|
+| `text` | `string` | Texto extraído del CV (PDF o DOCX). Se trunca a los primeros **8 000 caracteres** antes de enviarse al modelo. |
+| `retries` | `number` | Número de reintentos disponibles. Valor por defecto: `2`. |
+
+**Configuración del modelo**
+
+| Propiedad | Valor |
+|-----------|-------|
+| `model` | `"gemini-3-flash-preview"` |
+| `temperature` | `0.1` (baja, para máxima fidelidad en extracción) |
+| `responseMimeType` | `"application/json"` |
+
+**Instrucción del sistema**
+
+El modelo actúa como reclutador experto. La instrucción le pide extraer todos los campos relevantes del texto y devolverlos en la estructura JSON del `UserProfile`:
+
+```typescript
+const systemInstruction = `Actúa como un reclutador experto y analista de perfiles profesionales. 
+Tu tarea es extraer TODA la información relevante del texto proporcionado (CURRÍCULUM/LINKEDIN) 
+e integrarla en la estructura del APPLICANTE.
+...`;
+```
+
+**Campos extraídos**
+
+<AccordionGroup>
+  <Accordion title="Campos básicos">
+    - `nombre` — Nombre completo del aspirante
+    - `email` — Correo electrónico, si existe
+    - `phone` — Teléfono, si existe
+    - `years_experience` — Años totales de experiencia laboral (calculado)
+    - `current_position` — Cargo actual
+    - `empresa` — Empresa o institución actual
+    - `industry` — Sector o industria
+    - `education_level` — Nivel educativo más alto (Pregrado, Posgrado, etc.)
+  </Accordion>
+  <Accordion title="Formación académica">
+    El campo `formacion` es un arreglo de objetos con:
+    - `titulo` — Nombre del título o diploma
+    - `institucion` — Universidad o entidad
+    - `anio` — Año de graduación o `"En curso"`
+    - `nivel` — Nivel (Pregrado, Posgrado, Especialización, Maestría, Doctorado)
+  </Accordion>
+  <Accordion title="Competencias y proyectos">
+    - `technical_skills` — Arreglo de habilidades técnicas
+    - `certifications` — Arreglo de certificaciones (separadas de la educación formal)
+    - `relevant_projects` — Arreglo de proyectos relevantes
+  </Accordion>
+  <Accordion title="Campos VAP-Rec específicos">
+    - `area_profundizacion` — Campo de interés detectado
+    - `contexto_aplicacion` — Contexto de aplicación detectado
+    - `objetivo_profesional` — Meta profesional detectada
+    - `motivation` — Resumen motivacional
+    - `resumen` — Resumen general del perfil
+    - `respuestas_experiencia.transformacion_pedagogica` — Nivel de experiencia en transformación pedagógica
+    - `respuestas_experiencia.diseño_curricular` — Nivel de experiencia en diseño curricular
+    - `respuestas_experiencia.integracion_tic` — Nivel de experiencia en integración TIC
+  </Accordion>
+</AccordionGroup>
+
+**Lógica de reintentos**
+
+Si la llamada falla, la función espera antes de reintentar con retardo exponencial:
+
+```typescript
+if (retries > 0) {
+  const delay = (3 - retries) * 1500; // 1500ms en el intento 1, 3000ms en el intento 2
+  await sleep(delay);
+  return extractProfile(text, retries - 1);
+}
+```
+
+---
+
+### `evaluateVAP`
+
+Evalúa al aspirante contra las 5 competencias del Marco VAP y devuelve un arreglo de puntuaciones con justificaciones.
+
+```typescript
+export const evaluateVAP = async (
+  profile: UserProfile,
+  answers?: Record<string, string>,
+  retries = 2
+): Promise<VAPEvaluation[]>
+```
+
+**Parámetros**
+
+| Parámetro | Tipo | Descripción |
+|-----------|------|-------------|
+| `profile` | `UserProfile` | Perfil completo del aspirante. |
+| `answers` | `Record<string, string>` | Respuestas de la evaluación técnica: clave de competencia → opción seleccionada. Opcional. |
+| `retries` | `number` | Reintentos disponibles. Valor por defecto: `2`. |
+
+**Competencias evaluadas**
+
+El conjunto completo de `VAP_COMPETENCIES` se serializa como JSON y se inyecta en la instrucción del sistema. Las cinco competencias son:
+
+| ID | Clave | Nombre |
+|----|-------|--------|
+| C1 | `COMUNICACION_OE` | Comunicación Oral y Escrita en Contextos Educativos |
+| C2 | `INVESTIGACION_IE` | Investigación-Intervención en Asuntos Educativos |
+| C3 | `PRAXIS_TRANSF_PED` | Praxis y Transformación Pedagógica |
+| C4 | `DISENO_EVAL_CURR` | Diseño y Evaluación Curricular |
+| C5 | `USO_TIC_EDU` | Uso de TIC para Enriquecer Procesos Educativos |
+
+**Escala de puntuación**
+
+| Rango | Nivel |
+|-------|-------|
+| 1.0 – 2.5 | Novato |
+| 3.0 – 3.9 | Competente |
+| 4.0 – 4.5 | Proficiente |
+| 4.6 – 5.0 | Experto |
+
+**Formato de respuesta**
+
+El modelo devuelve un arreglo JSON donde cada elemento sigue la interfaz `VAPEvaluation`:
+
+```json
+[
+  {
+    "competencia_id": "C1",
+    "puntaje": 3.5,
+    "nivel": "Competente",
+    "justificacion": "El aspirante demuestra capacidad para producir textos educativos estructurados..."
+  },
+  {
+    "competencia_id": "C2",
+    "puntaje": 2.0,
+    "nivel": "Novato",
+    "justificacion": "Identifica problemas educativos de forma general..."
+  }
+]
+```
+
+---
+
+### `getAIRecommendation`
+
+Genera la ruta académica personalizada cruzando los resultados de la evaluación VAP con el catálogo de cursos.
+
+```typescript
+export const getAIRecommendation = async (
+  profile: UserProfile,
+  evaluation: VAPEvaluation[],
+  retries = 2
+): Promise<any>
+```
+
+**Parámetros**
+
+| Parámetro | Tipo | Descripción |
+|-----------|------|-------------|
+| `profile` | `UserProfile` | Perfil del aspirante. |
+| `evaluation` | `VAPEvaluation[]` | Resultados de la evaluación VAP. |
+| `retries` | `number` | Reintentos disponibles. Valor por defecto: `2`. |
+
+**Lógica de cruce (cross-matching)**
+
+Antes de llamar al modelo, la función serializa el catálogo de cursos con campos reducidos para no exceder el límite de tokens:
+
+```typescript
+const catalogPrompt = JSON.stringify(COURSE_CATALOG.map(c => ({
+  id: c.id_curso,
+  nombre: c.nombre,
+  competencias: c.competencias_VAP_primarias,
+  desc: c.descripcion?.substring(0, 100),
+  semestre: c.semestre
+})));
+```
+
+La instrucción del sistema le indica al modelo:
+
+1. Identificar las competencias (C1–C5) con `puntaje < 4.0`.
+2. Seleccionar cursos del catálogo cuyas `competencias_VAP_primarias` correspondan a esas brechas.
+3. Priorizar los cursos que abordan la brecha más crítica (menor puntaje).
+4. Sugerir **máximo 4 cursos**.
+
+**Formato de respuesta**
+
+```json
+{
+  "mensaje_estudiante": "Mensaje motivador personalizado para el aspirante...",
+  "cursos_sugeridos": ["ID_CURSO_1", "ID_CURSO_2"],
+  "plan_semestral": [
+    {
+      "semestre": 1,
+      "materias": [
+        {
+          "nombre": "Nombre de la materia",
+          "estado": "regular",
+          "justificacion": "Breve explicación del estado"
+        }
+      ]
+    }
+  ],
+  "analisis_director": "Justificación técnica para la flexibilización curricular..."
+}
+```
+
+<Info>
+  El campo `estado` de cada materia puede ser `"regular"` (materia normal del plan), `"exonerada"` (reconocida por experiencia previa) o `"sugerida"` (curso adicional para cerrar brechas). El `plan_semestral` debe incluir **todas** las materias del programa, marcando cuáles se exoneran y cuáles se agregan.
+</Info>
+
+---
+
+## Función auxiliar: `parseJSONResponse`
+
+`parseJSONResponse` es una función interna que extrae JSON de respuestas del modelo que pueden contener texto adicional o bloques de código Markdown.
+
+```typescript
+const parseJSONResponse = (text: string) => {
+  // Encuentra los límites { } o [ ] del JSON
+  const jsonStart = text.indexOf('{');
+  const jsonEnd = text.lastIndexOf('}');
+  const arrayStart = text.indexOf('[');
+  const arrayEnd = text.lastIndexOf(']');
+
+  // Determina si la respuesta es objeto o arreglo
+  let start = -1;
+  let end = -1;
+
+  if (jsonStart !== -1 && (arrayStart === -1 || jsonStart < arrayStart)) {
+    start = jsonStart;
+    end = jsonEnd;
+  } else if (arrayStart !== -1) {
+    start = arrayStart;
+    end = arrayEnd;
+  }
+
+  if (start === -1 || end === -1) {
+    throw new Error('No se encontró un formato JSON válido en la respuesta.');
+  }
+
+  return JSON.parse(text.substring(start, end + 1));
+};
+```
+
+La función lanza un error descriptivo si la respuesta está vacía o no contiene un patrón JSON reconocible.
+
+---
+
+## Manejo de errores y reintentos
+
+Las tres funciones comparten una política de reintentos con retardo:
+
+<Steps>
+  <Step title="Primera llamada al modelo">
+    Se ejecuta la solicitud con los parámetros configurados. Si la respuesta es exitosa, se parsea y devuelve el resultado.
+  </Step>
+  <Step title="Reintento con espera">
+    Si ocurre un error y quedan reintentos disponibles, la función espera `1 500 ms × número_de_intento` antes de reintentar automáticamente.
+  </Step>
+  <Step title="Error final">
+    Si se agotan todos los reintentos, la función lanza un error con mensaje descriptivo. Los errores de cuota (HTTP 429) generan un mensaje específico: `"Límite de cuota alcanzado. Por favor, espera un minuto."`.
+  </Step>
+</Steps>
+
+<Warning>
+  Si `GEMINI_API_KEY` no está configurada correctamente, todas las llamadas al modelo fallarán con un error de conexión. Verifica la variable de entorno antes de desplegar la aplicación.
+</Warning>
+
+---
+
+## Páginas relacionadas
+
+<CardGroup cols={2}>
+  <Card title="Extracción de perfil" icon="file-import" href="/reference/profile-extraction">
+    Detalles del pipeline de procesamiento de PDF y DOCX antes de llamar a `extractProfile`.
+  </Card>
+  <Card title="Marco VAP" icon="brain" href="/reference/vap-framework">
+    Las 5 competencias que `evaluateVAP` evalúa y cómo se definen sus niveles.
+  </Card>
+  <Card title="Gap analysis" icon="chart-bar" href="/reference/gap-analysis">
+    Cómo `getAIRecommendation` cruza puntajes VAP con el catálogo para generar la ruta.
+  </Card>
+  <Card title="Catálogo de cursos" icon="book-open" href="/reference/course-catalog">
+    Estructura de los cursos disponibles que se pasan a `getAIRecommendation`.
+  </Card>
+</CardGroup>

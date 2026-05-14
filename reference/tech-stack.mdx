@@ -1,0 +1,166 @@
+---
+title: "Stack tecnológico de RAP-Rec: dependencias y versiones"
+description: "Dependencias de producción y desarrollo de RAP-Rec con versiones exactas: React 19, Vite 6, Gemini SDK, Chart.js, pdfjs-dist y Tailwind CSS 4."
+---
+
+RAP-Rec está construido sobre un conjunto de bibliotecas de código abierto ampliamente adoptadas en el ecosistema JavaScript. Cada dependencia cumple un rol específico dentro del flujo de evaluación VAP y fue elegida por su estabilidad, tamaño de comunidad y compatibilidad con la arquitectura de cliente puro.
+
+## Dependencias de producción
+
+El siguiente bloque muestra el contenido exacto del campo `dependencies` en `package.json`:
+
+```json
+{
+  "dependencies": {
+    "@google/genai": "^1.29.0",
+    "@google/generative-ai": "^0.24.1",
+    "@tailwindcss/vite": "^4.1.14",
+    "@vitejs/plugin-react": "^5.0.4",
+    "chart.js": "^4.5.1",
+    "clsx": "^2.1.1",
+    "dotenv": "^17.2.3",
+    "express": "^4.21.2",
+    "lucide-react": "^0.546.0",
+    "mammoth": "^1.12.0",
+    "motion": "^12.23.24",
+    "pdfjs-dist": "^5.7.284",
+    "react": "^19.0.0",
+    "react-chartjs-2": "^5.3.1",
+    "react-dom": "^19.0.0",
+    "tailwind-merge": "^3.5.0",
+    "vite": "^6.2.0"
+  }
+}
+```
+
+## Dependencias de desarrollo
+
+```json
+{
+  "devDependencies": {
+    "@types/express": "^4.17.21",
+    "@types/node": "^22.14.0",
+    "autoprefixer": "^10.4.21",
+    "tailwindcss": "^4.1.14",
+    "tsx": "^4.21.0",
+    "typescript": "~5.8.2",
+    "vite": "^6.2.0"
+  }
+}
+```
+
+## Tecnologías principales
+
+<AccordionGroup>
+  <Accordion title="React 19 y React DOM 19" icon="atom">
+    Framework de interfaz de usuario que gestiona el árbol de componentes y el ciclo de vida del estado. RAP-Rec usa los hooks `useState` y `useEffect` en `App.tsx` para implementar la máquina de estados de 7 pasos. `react-dom` es el paquete de renderización que monta la aplicación en `index.html` desde `src/main.tsx`.
+  </Accordion>
+  <Accordion title="Vite 6" icon="bolt">
+    Herramienta de compilación y servidor de desarrollo. Vite transforma los módulos ES nativos del navegador para obtener tiempos de arranque casi instantáneos. En producción, genera un bundle optimizado con `vite build`. El servidor de desarrollo se configura en el script `dev` con el puerto fijo 3000 y escucha en todas las interfaces (`0.0.0.0`).
+  </Accordion>
+  <Accordion title="TypeScript 5.8" icon="code">
+    Superset tipado de JavaScript. Todas las interfaces del dominio (`Course`, `Competency`, `UserProfile`, `VAPEvaluation`, `AppState`) están definidas en `src/types.ts`. El script `lint` ejecuta `tsc --noEmit` para verificar los tipos sin emitir archivos. TypeScript se usa en modo estricto a través de la configuración de Vite.
+  </Accordion>
+</AccordionGroup>
+
+## Estilos y animaciones
+
+<AccordionGroup>
+  <Accordion title="Tailwind CSS 4 + @tailwindcss/vite" icon="palette">
+    Framework de CSS utilitario integrado directamente en el pipeline de Vite mediante el plugin `@tailwindcss/vite`. El sitio define colores de marca Icesi como tokens personalizados (`icesi-blue`, `icesi-orange`, `icesi-green`, `icesi-red`, `icesi-purple`) que se usan en toda la interfaz para mantener la identidad visual de la Universidad Icesi.
+  </Accordion>
+  <Accordion title="Framer Motion 12 (motion/react)" icon="sparkles">
+    Biblioteca de animaciones declarativas para React. En `App.tsx`, cada paso de la máquina de estados se envuelve en un componente `<motion.div>` con transiciones de entrada y salida (`opacity`, `y`, `x`). El componente `<AnimatePresence>` gestiona las transiciones entre pasos para evitar saltos bruscos de contenido. La barra de progreso usa `motion.div` con `animate={{ width }}` para animar el porcentaje completado.
+  </Accordion>
+  <Accordion title="tailwind-merge y clsx" icon="merge">
+    Utilidades para construir strings de clases CSS condicionales de forma segura. `clsx` permite combinar clases con lógica booleana; `tailwind-merge` resuelve conflictos cuando dos clases de Tailwind afectan la misma propiedad CSS (por ejemplo, `bg-blue-500` y `bg-red-500`). Ambas se usan conjuntamente en los componentes para aplicar estilos condicionales según el estado activo de cada elemento.
+  </Accordion>
+</AccordionGroup>
+
+## Visualización de datos
+
+<AccordionGroup>
+  <Accordion title="Chart.js 4 + react-chartjs-2" icon="chart-pie">
+    Chart.js es la biblioteca de gráficos subyacente que renderiza en un elemento `<canvas>`. `react-chartjs-2` provee los componentes `<Radar>` y `<Doughnut>` que se usan directamente en el paso 7. El gráfico **Radar** muestra los 5 puntajes VAP del aspirante en escala de 0 a 5. El gráfico **Doughnut** se usa en la vista del director para visualizar la distribución de brechas por competencia.
+
+    Los módulos de Chart.js se registran explícitamente en `App.tsx`:
+
+    ```typescript
+    ChartJS.register(
+      RadialLinearScale,
+      PointElement,
+      LineElement,
+      Filler,
+      Tooltip,
+      Legend,
+      ArcElement
+    );
+    ```
+  </Accordion>
+</AccordionGroup>
+
+## Inteligencia artificial
+
+<AccordionGroup>
+  <Accordion title="@google/genai — SDK principal de Gemini" icon="robot">
+    SDK oficial de Google para llamar a la API de Gemini desde JavaScript o TypeScript. En `src/services/gemini.ts`, se instancia con:
+
+    ```typescript
+    const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+    ```
+
+    Las tres funciones del servicio (`extractProfile`, `evaluateVAP`, `getAIRecommendation`) usan `ai.models.generateContent()` con el parámetro `responseMimeType: "application/json"` para forzar respuestas estructuradas que se pueden parsear directamente.
+  </Accordion>
+  <Accordion title="Modelo: gemini-3-flash-preview" icon="microchip">
+    El modelo usado en las tres funciones del servicio de IA es `"gemini-3-flash-preview"`, definido como constante en la cima de `src/services/gemini.ts`:
+
+    ```typescript
+    const MODEL_NAME = "gemini-3-flash-preview";
+    ```
+
+    La variante `flash` prioriza velocidad y costo reducido frente a las variantes `pro`, lo que es adecuado para el caso de uso de RAP-Rec donde se necesitan múltiples llamadas en secuencia durante una misma sesión.
+  </Accordion>
+</AccordionGroup>
+
+## Procesamiento de documentos
+
+<AccordionGroup>
+  <Accordion title="pdfjs-dist 5 — Extracción de texto PDF" icon="file-pdf">
+    Biblioteca oficial de Mozilla para parsear y renderizar PDFs en el navegador. RAP-Rec la importa de forma dinámica (`await import('pdfjs-dist')`) para evitar que aumente el tamaño del bundle principal. El worker de PDF.js se carga desde CDN:
+
+    ```typescript
+    pdfjsLib.GlobalWorkerOptions.workerSrc =
+      `https://cdn.jsdelivr.net/npm/pdfjs-dist@5.7.284/build/pdf.worker.min.mjs`;
+    ```
+
+    El texto se extrae página por página mediante `page.getTextContent()` y se concatena antes de enviarse a Gemini.
+  </Accordion>
+  <Accordion title="mammoth — Extracción de texto DOCX" icon="file-word">
+    Convierte documentos `.docx` (Office Open XML) a texto plano. RAP-Rec usa exclusivamente `mammoth.extractRawText()`, que descarta el formato visual y devuelve solo el contenido textual. Esto es suficiente para que Gemini pueda estructurar el perfil del aspirante a partir del CV.
+  </Accordion>
+</AccordionGroup>
+
+## Iconografía
+
+<AccordionGroup>
+  <Accordion title="Lucide React" icon="shapes">
+    Biblioteca de iconos SVG como componentes React. RAP-Rec usa iconos de Lucide en toda la interfaz para señalar acciones y estados: `Upload`, `FileText`, `BarChart3`, `BrainCircuit`, `CheckCircle2`, `AlertCircle`, `GraduationCap`, `Calendar`, `Clock`, `DollarSign`, entre otros. Los iconos se importan individualmente para que el compilador pueda eliminar los no utilizados (tree-shaking).
+  </Accordion>
+</AccordionGroup>
+
+## Referencias relacionadas
+
+<CardGroup cols={2}>
+  <Card title="Arquitectura" icon="sitemap" href="/reference/architecture">
+    Visión general de la SPA, estructura de directorios e interfaces TypeScript del dominio.
+  </Card>
+  <Card title="Configuración" icon="gear" href="/reference/configuration">
+    Variables de entorno, puerto de desarrollo y constantes del servicio de IA.
+  </Card>
+  <Card title="Integración con Gemini" icon="robot" href="/reference/gemini-integration">
+    Detalles del SDK, modelo, reintentos y parsing de respuestas JSON.
+  </Card>
+  <Card title="Extracción de perfil" icon="file-import" href="/reference/profile-extraction">
+    Prompt de extracción, temperatura 0.1 y sanitización del objeto `UserProfile`.
+  </Card>
+</CardGroup>

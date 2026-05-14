@@ -1,0 +1,81 @@
+---
+title: "Paso 3: Verificación de tu formación académica extraída"
+description: "Revisa y corrige los datos personales y académicos extraídos por la IA, y completa o ajusta tu historial de formación antes de continuar la evaluación."
+---
+
+En el paso 3 verificas que la información extraída de tu hoja de vida sea correcta. La pantalla presenta los datos personales y profesionales en un formulario editable, dividido en dos secciones: **Datos Personales** y **Trayectoria Profesional**. Debajo de estas secciones aparece tu historial de **Formación Académica**, donde puedes añadir o eliminar títulos.
+
+<Note>
+  Si llegaste al paso 3 sin cargar un archivo (opción manual), los campos aparecerán vacíos y deberás completarlos directamente aquí. Si la IA extrajo tus datos, revisa cada campo con atención antes de continuar.
+</Note>
+
+## Flujo de verificación
+
+<Steps>
+  <Step title="Revisa tus datos personales">
+    Verifica los campos de la sección **Datos Personales**. Corrige cualquier dato que la IA haya extraído de forma incorrecta o incompleta.
+
+    Los campos de datos personales son: **Nombre Completo**, **Email de contacto** y **Teléfono**.
+  </Step>
+  <Step title="Revisa tu trayectoria profesional">
+    Verifica los campos de la sección **Trayectoria Profesional**. Estos campos son los que el sistema utiliza para contextualizar tus respuestas en la evaluación VAP.
+
+    Los campos de trayectoria son: **Cargo Actual**, **Empresa / Institución**, **Sector**, **Experiencia (años)** y **Resumen Profesional**.
+  </Step>
+  <Step title="Revisa y edita tu formación académica">
+    La sección **Formación Académica** muestra los títulos detectados en tu CV. Cada registro ocupa una fila con cuatro campos editables: **Título**, **Institución**, **Año** y **Nivel** (por defecto `Pregrado`).
+
+    Corrige cualquier dato incorrecto directamente en los campos de cada fila.
+  </Step>
+  <Step title="Añade títulos académicos faltantes">
+    Si la IA no detectó todos tus títulos, haz clic en el botón **Añadir otro título** al final de la lista. El sistema agrega una fila vacía donde puedes ingresar el título, la institución, el año y el nivel académico del nuevo registro.
+  </Step>
+  <Step title="Elimina registros incorrectos">
+    Para eliminar un registro de formación, haz clic en el botón circular ubicado en la esquina superior derecha de la tarjeta del título que deseas remover. El registro se elimina de la lista inmediatamente.
+  </Step>
+  <Step title="Continúa al siguiente paso">
+    Cuando los datos sean correctos, haz clic en **Siguiente: Experiencia →** para avanzar al paso 4. Si necesitas corregir algo del paso anterior, haz clic en **Volver**.
+  </Step>
+</Steps>
+
+## Campos del perfil
+
+### Datos personales y profesionales
+
+| Campo | Descripción |
+|---|---|
+| `nombre` | Nombre completo del aspirante, usado en el reporte final |
+| `email` | Correo electrónico de contacto |
+| `phone` | Número de teléfono |
+| `current_position` | Cargo o posición actual (requerido para generar el reporte) |
+| `empresa` | Empresa o institución donde trabaja actualmente |
+| `industry` | Sector de trabajo: Educación, Tecnología, Salud, Derecho, Servicios u Otro |
+| `years_experience` | Años totales de experiencia laboral (valor numérico) |
+| `resumen` | Párrafo de descripción profesional; la IA lo extrae del perfil o resumen del CV |
+
+<Warning>
+  Los campos **Nombre Completo** y **Cargo Actual** son necesarios para que el sistema genere el reporte de evaluación VAP. Si alguno de estos campos está vacío al llegar al paso 6, el sistema te pedirá que vuelvas a completarlos antes de continuar.
+</Warning>
+
+### Formación académica (`formacion`)
+
+Cada título académico en el historial de formación tiene los siguientes campos:
+
+| Campo | Descripción | Ejemplo |
+|---|---|---|
+| `titulo` | Nombre del título o programa cursado | `Ingeniería de Sistemas` |
+| `institucion` | Institución que otorgó el título | `Universidad Icesi` |
+| `anio` | Año de grado o estado actual | `2018` o `En curso` |
+| `nivel` | Nivel académico del título | `Pregrado`, `Posgrado`, `Especialización`, `Doctorado` |
+
+<Tip>
+  Para títulos que aún estás cursando, escribe `En curso` en el campo **Año**. El sistema acepta este texto sin problema.
+</Tip>
+
+## Siguiente paso
+
+Cuando hayas verificado y corregido todos tus datos, continúas respondiendo las preguntas sobre tu experiencia específica relacionada con el programa seleccionado.
+
+<Card title="Experiencia específica" icon="briefcase" href="/guide/experience">
+  Responde 3 preguntas sobre tu práctica en transformación pedagógica, diseño curricular e integración de TIC.
+</Card>

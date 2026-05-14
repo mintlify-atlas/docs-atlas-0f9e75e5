@@ -1,0 +1,164 @@
+---
+title: "Configuración de RAP-Rec: variables de entorno y Vite"
+description: "Configura GEMINI_API_KEY en el archivo .env, inicia el servidor de desarrollo en el puerto 3000 y conoce los parámetros internos del modelo Gemini."
+---
+
+RAP-Rec requiere una única variable de entorno para funcionar: la clave de API de Google Gemini. Todos los demás parámetros de comportamiento están definidos directamente en el código fuente como constantes. Esta página describe cómo configurar el sistema antes de ejecutarlo.
+
+## Variable de entorno
+
+### `GEMINI_API_KEY`
+
+La clave de API de Google Gemini es el único valor externo que el sistema necesita. Las tres funciones del servicio de IA (`extractProfile`, `evaluateVAP`, `getAIRecommendation`) fallarán sin esta clave.
+
+Vite inyecta la clave en tiempo de compilación mediante la directiva `define` en `vite.config.ts`:
+
+```typescript
+define: {
+  'process.env.GEMINI_API_KEY': JSON.stringify(env.GEMINI_API_KEY),
+},
+```
+
+Esto hace que `process.env.GEMINI_API_KEY` esté disponible en el código del cliente aunque el navegador no tenga acceso al sistema de archivos del servidor.
+
+<Note>
+  Obtén tu `GEMINI_API_KEY` en [Google AI Studio](https://aistudio.google.com/app/apikey). La clave es gratuita para uso experimental dentro de los límites de cuota de Gemini. Si el sistema devuelve un error de cuota (`429`), espera un minuto antes de intentar de nuevo.
+</Note>
+
+## Archivo `.env`
+
+Crea un archivo `.env` en la raíz del proyecto copiando el archivo de ejemplo:
+
+```bash
+cp .env.example .env
+```
+
+El contenido del archivo `.env.example` es el siguiente:
+
+```bash
+# GEMINI_API_KEY: Required for Gemini AI API calls.
+# AI Studio automatically injects this at runtime from user secrets.
+# Users configure this via the Secrets panel in the AI Studio UI.
+GEMINI_API_KEY="Api key"
+
+# APP_URL: The URL where this applet is hosted.
+# AI Studio automatically injects this at runtime with the Cloud Run service URL.
+# Used for self-referential links, OAuth callbacks, and API endpoints.
+APP_URL="MY_APP_URL"
+```
+
+Reemplaza el valor de `GEMINI_API_KEY` con tu clave real:
+
+```bash
+GEMINI_API_KEY="AIza..."
+```
+
+<Warning>
+  No subas tu archivo `.env` a un repositorio público. El archivo `.env` debe estar en `.gitignore`. Solo comparte el archivo `.env.example` sin valores reales.
+</Warning>
+
+## Servidor de desarrollo
+
+El script `dev` en `package.json` arranca el servidor de Vite con los siguientes parámetros:
+
+```json
+{
+  "scripts": {
+    "dev": "vite --port=3000 --host=0.0.0.0"
+  }
+}
+```
+
+| Parámetro | Valor | Descripción |
+|-----------|-------|-------------|
+| `--port`  | `3000` | Puerto TCP en el que escucha el servidor de desarrollo. |
+| `--host`  | `0.0.0.0` | Acepta conexiones desde cualquier interfaz de red, no solo `localhost`. Útil al ejecutar dentro de contenedores o entornos de CI. |
+
+Para iniciar el servidor, ejecuta:
+
+```bash
+npm run dev
+```
+
+La aplicación estará disponible en `http://localhost:3000`.
+
+## Comandos disponibles
+
+| Comando | Descripción |
+|---------|-------------|
+| `npm run dev` | Inicia el servidor de desarrollo en el puerto 3000. |
+| `npm run build` | Genera el bundle de producción en el directorio `dist/`. |
+| `npm run preview` | Sirve localmente el bundle de producción generado por `build`. |
+| `npm run clean` | Elimina el directorio `dist/`. |
+| `npm run lint` | Verifica tipos TypeScript sin emitir archivos (`tsc --noEmit`). |
+
+## Parámetros internos del servicio de IA
+
+Los siguientes valores están definidos directamente en `src/services/gemini.ts` como constantes. No se exponen como variables de entorno porque son parámetros de comportamiento del modelo que el operador del sistema controla.
+
+### Nombre del modelo
+
+```typescript
+const MODEL_NAME = "gemini-3-flash-preview";
+```
+
+Este es el identificador del modelo de Google Gemini que se usa en las tres funciones del servicio.
+
+### Temperatura de extracción
+
+```typescript
+config: {
+  temperature: 0.1  // Low temperature for extraction reliability
+}
+```
+
+La función `extractProfile` usa temperatura `0.1`. Un valor bajo de temperatura hace que el modelo sea más determinista y siga de forma más fiel las instrucciones del prompt de extracción, reduciendo las variaciones creativas en la respuesta JSON. Las funciones `evaluateVAP` y `getAIRecommendation` no especifican temperatura, usando el valor por defecto del modelo.
+
+### Lógica de reintentos
+
+Las tres funciones del servicio implementan reintentos automáticos con un máximo de 2 intentos adicionales (3 intentos en total). El retardo entre intentos crece de forma lineal:
+
+```typescript
+// Patrón compartido en extractProfile, evaluateVAP y getAIRecommendation
+export const extractProfile = async (text: string, retries = 2): Promise<UserProfile> => {
+  try {
+    // ... llamada a Gemini
+  } catch (error) {
+    if (retries > 0) {
+      const delay = (3 - retries) * 1500; // 1500ms en el primer reintento, 3000ms en el segundo
+      await sleep(delay);
+      return extractProfile(text, retries - 1);
+    }
+    throw error;
+  }
+};
+```
+
+| Intento | Retardo antes del reintento |
+|---------|-----------------------------|
+| 1.º (original) | Sin retardo |
+| 2.º (primer reintento) | 1 500 ms |
+| 3.º (segundo reintento) | 3 000 ms |
+
+Si los 3 intentos fallan, la función lanza un error que muestra un mensaje al aspirante en la interfaz.
+
+<Tip>
+  Si ves errores frecuentes de cuota durante pruebas, aumenta el retardo entre reintentos modificando el multiplicador `1500` en `src/services/gemini.ts`. Recuerda ejecutar `npm run build` después de cualquier cambio en el código fuente.
+</Tip>
+
+## Referencias relacionadas
+
+<CardGroup cols={2}>
+  <Card title="Arquitectura" icon="sitemap" href="/reference/architecture">
+    Cómo Vite inyecta `GEMINI_API_KEY` en el bundle del cliente a través de la directiva `define`.
+  </Card>
+  <Card title="Integración con Gemini" icon="robot" href="/reference/gemini-integration">
+    Detalles completos del SDK `@google/genai`, funciones expuestas y manejo de errores.
+  </Card>
+  <Card title="Stack tecnológico" icon="layer-group" href="/reference/tech-stack">
+    Versiones exactas de Vite, TypeScript y todas las demás dependencias del proyecto.
+  </Card>
+  <Card title="Extracción de perfil" icon="file-import" href="/reference/profile-extraction">
+    Uso de temperatura 0.1 en `extractProfile` y la estructura del prompt de extracción.
+  </Card>
+</CardGroup>

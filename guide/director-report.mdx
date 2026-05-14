@@ -1,0 +1,105 @@
+---
+title: "Vista del director: reporte ejecutivo de postulación"
+description: "Accede al reporte técnico para directores de programa, interpreta el análisis de brechas VAP y úsalo para respaldar decisiones de flexibilización curricular."
+---
+
+La Vista del Director es una capa de información adicional dentro del paso 7 que muestra un reporte ejecutivo orientado a la toma de decisiones académicas. Esta vista está diseñada para los directores de programa de la Facultad de Ciencias Humanas de la Universidad Icesi y presenta la justificación técnica generada por la IA para respaldar cualquier ajuste curricular.
+
+<Note>
+  Solo las personas con la contraseña institucional deben acceder a esta vista. Si eres aspirante, no necesitas ingresar a la Vista del Director para completar tu proceso de evaluación.
+</Note>
+
+## Cómo acceder a la Vista del Director
+
+<Steps>
+  <Step title="Completa la evaluación VAP">
+    La Vista del Director solo está disponible en el paso 7 (Reporte), después de que el sistema haya generado los resultados de la evaluación y la ruta académica. Asegúrate de haber completado los seis pasos anteriores y de que el reporte esté visible en pantalla.
+  </Step>
+  <Step title="Haz clic en Vista Director">
+    En la barra de navegación superior, haz clic en el botón **VISTA DIRECTOR** (icono de engranaje). Este botón está siempre visible en el encabezado, independientemente del paso en que te encuentres.
+  </Step>
+  <Step title="Ingresa la contraseña institucional">
+    Aparece un modal de acceso administrativo con el mensaje "Solo Directores de Programa". Escribe la contraseña institucional en el campo de texto y pulsa **Ingresar** o presiona la tecla `Enter`.
+
+    Si la contraseña es incorrecta, el sistema muestra un aviso y el modal permanece abierto para que vuelvas a intentarlo.
+  </Step>
+  <Step title="Revisa el reporte ejecutivo">
+    Tras la autenticación exitosa, la vista del estudiante se reemplaza por el Reporte Ejecutivo de Postulación. El botón en la barra superior cambia a **SALIR VISTA DIRECTOR** con un icono de salida.
+  </Step>
+  <Step title="Sal de la Vista del Director">
+    Cuando termines de revisar el reporte, haz clic en **SALIR VISTA DIRECTOR** en la barra superior para volver a la vista del estudiante sin perder ningún dato de la sesión.
+  </Step>
+</Steps>
+
+## Contenido del reporte ejecutivo
+
+El reporte ejecutivo muestra las siguientes secciones en una sola pantalla:
+
+### Resumen de trayectoria
+
+Presenta los datos profesionales del aspirante extraídos de su perfil:
+
+- Años de experiencia total y nivel educativo máximo.
+- Último cargo e institución.
+- Resumen de logros (campo `resumen` del perfil).
+- Formación académica detallada (títulos, instituciones y años).
+- Área de profundización y contexto de aplicación (campos `area_profundizacion` y `contexto_aplicacion`).
+- Proyectos críticos relevantes.
+
+### Análisis de competencias VAP
+
+Muestra una barra de progreso por cada competencia (`C1`–`C5`) con:
+
+- Nombre completo de la competencia.
+- Nivel asignado (`Novato`, `Competente`, `Proficiente` o `Experto`) como etiqueta de color.
+- Barra de progreso proporcional al puntaje obtenido (escala 0–5).
+- Texto del campo `justificacion` de cada evaluación.
+
+### Ruta seleccionada por el estudiante
+
+Lista los cursos que el aspirante marcó con el checkbox en su vista. Cada entrada muestra el nombre del curso y el programa al que pertenece. Si el aspirante no seleccionó ningún curso, aparece el mensaje "No se han seleccionado cursos aún."
+
+### Propuesta de plan de estudios semestral adaptativo
+
+Replica el plan semestral organizado por semestres con los mismos estados (`regular`, `exonerada`, `sugerida`) y sus justificaciones, presentado con un diseño de mayor densidad informativa para su uso en contextos de revisión académica.
+
+### Análisis del director (`analisis_director`)
+
+Este es el contenido central de la Vista del Director. Es un párrafo narrativo generado por la IA que:
+
+- Identifica las competencias con puntajes bajos (menores a 4.0).
+- Nombra los cursos sugeridos (`cursos_sugeridos`) y explica por qué se seleccionaron.
+- Justifica técnicamente la propuesta de exoneración de materias y la inclusión de asignaturas de reemplazo.
+- Redacta la justificación en términos que permiten sustentar la decisión de flexibilización curricular ante instancias académicas.
+
+Ejemplo del formato esperado de `analisis_director`:
+
+```
+"Se sugieren los cursos X e Y para fortalecer las brechas detectadas en C2 y C5,
+permitiendo la flexibilización de los mismos en su ruta de posgrado."
+```
+
+## Propósito de la Vista del Director
+
+La Vista del Director está diseñada para facilitar las decisiones de **flexibilización curricular**: el proceso mediante el cual un director de programa autoriza que un aspirante omita ciertas materias del plan estándar y las reemplace por cursos que atienden sus necesidades específicas de formación. El análisis técnico de la IA proporciona la justificación documentada que respalda esa decisión.
+
+<Tip>
+  El reporte ejecutivo puede usarse como insumo para las reuniones de comité curricular o para la comunicación formal con el aspirante sobre las condiciones de ingreso al programa con reconocimiento de aprendizajes previos.
+</Tip>
+
+## Páginas relacionadas
+
+<CardGroup cols={2}>
+  <Card title="Radar de competencias" icon="chart-pie" href="/guide/competency-radar">
+    Visualización de los puntajes VAP que fundamentan el análisis del director.
+  </Card>
+  <Card title="Ruta académica" icon="route" href="/guide/academic-route">
+    El plan semestral y los cursos sugeridos que el director revisa y aprueba.
+  </Card>
+  <Card title="Marco VAP" icon="brain" href="/reference/vap-framework">
+    Definición oficial de las cinco competencias evaluadas en el reporte.
+  </Card>
+  <Card title="Integración con Gemini" icon="sparkles" href="/reference/gemini-integration">
+    Cómo la IA genera el campo `analisis_director` a partir de los puntajes y el catálogo.
+  </Card>
+</CardGroup>

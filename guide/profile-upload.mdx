@@ -1,0 +1,84 @@
+---
+title: "Paso 2: Carga y extracción de tu perfil profesional"
+description: "Sube tu hoja de vida en PDF o DOCX, usa el perfil de demostración o ingresa tus datos manualmente para que la IA complete tu perfil."
+---
+
+En el paso 2 le proporcionas a RAP-Rec tu información profesional. El sistema ofrece tres formas de hacerlo: subir un archivo de hoja de vida, cargar un perfil de demostración o completar el formulario de forma manual. Independientemente del método que elijas, los datos recopilados en este paso alimentan la evaluación VAP y la generación de tu ruta académica.
+
+## Opciones de carga
+
+<Steps>
+  <Step title="Opción A: cargar un archivo PDF o DOCX">
+    Haz clic en el área punteada con el texto **Seleccionar PDF o WORD** y selecciona tu archivo de hoja de vida. El sistema acepta únicamente archivos con extensión `.pdf` o `.docx`.
+
+    Una vez seleccionado el archivo, el sistema:
+
+    1. Lee el contenido del archivo directamente en tu navegador (el archivo binario no se envía a ningún servidor).
+    2. Extrae el texto completo del documento (hasta 8 000 caracteres).
+    3. Envía el texto extraído a la API de Google Gemini para que identifique y estructure tu información profesional.
+    4. Auto-completa los campos de tu perfil con los datos detectados.
+    5. Te lleva automáticamente al paso 3 (verificación de formación académica).
+
+    <Warning>
+      Los archivos PDF basados en imágenes escaneadas o protegidos con contraseña no pueden procesarse. Si el archivo tiene menos de 30 caracteres de texto extraíble, el sistema muestra un error y te pide que intentes con otro archivo o que ingreses los datos manualmente.
+    </Warning>
+  </Step>
+  <Step title="Opción B: cargar el perfil de demostración">
+    Haz clic en el botón **Cargar Ejemplo (Doc Spec)** para cargar un perfil de demostración predefinido. Esta opción es útil para explorar el flujo completo de RAP-Rec sin necesidad de tener tu propio CV a la mano.
+
+    El perfil de demostración incluye datos de una aspirante ficticia con formación en Ingeniería de Sistemas y Maestría en Ciencia de Datos, habilidades técnicas en Python, FastAPI, React e IA Generativa, y proyectos en tecnología educativa.
+  </Step>
+  <Step title="Opción C: completar manualmente">
+    Haz clic en el enlace **Completar manualmente →** para acceder directamente al formulario del paso 2. Ingresa o corrige los siguientes campos:
+
+    - **Email de contacto**
+    - **Cargo actual**
+    - **Empresa / Institución**
+    - **Sector / Industria** (Educación, Tecnología, Salud u Otro)
+    - **Años de experiencia**
+    - **Nivel educativo** (Pregrado, Especialización, Maestría o Doctorado)
+
+    Cuando termines, haz clic en **Continuar a Formación →** para avanzar al paso 3.
+  </Step>
+</Steps>
+
+## Datos que extrae la IA
+
+Cuando subes un archivo, Google Gemini analiza el texto y extrae los siguientes campos del tipo `UserProfile`:
+
+| Campo | Tipo | Descripción |
+|---|---|---|
+| `nombre` | Texto | Nombre completo del aspirante |
+| `email` | Texto | Correo electrónico de contacto |
+| `phone` | Texto | Número de teléfono |
+| `current_position` | Texto | Cargo o posición actual |
+| `empresa` | Texto | Empresa o institución donde trabaja |
+| `industry` | Texto | Sector o industria |
+| `years_experience` | Número | Años de experiencia laboral |
+| `education_level` | Texto | Nivel educativo más alto alcanzado |
+| `technical_skills` | Lista | Habilidades técnicas identificadas |
+| `certifications` | Lista | Certificaciones detectadas |
+| `relevant_projects` | Lista | Proyectos relevantes mencionados |
+| `resumen` | Texto | Resumen profesional |
+| `formacion` | Lista | Títulos académicos (ver paso 3) |
+| `respuestas_experiencia` | Objeto | Respuestas sobre transformación pedagógica, diseño curricular e integración TIC (si se detectan en el CV) |
+
+<Note>
+  La extracción automática es una ayuda inicial. En el paso 3 puedes revisar y corregir cualquier dato detectado de forma incorrecta. Los datos que ingreses o corrijas manualmente siempre tienen prioridad sobre los extraídos por la IA.
+</Note>
+
+## Qué pasa después de la extracción
+
+Si la IA detecta al menos el nombre o el cargo actual del aspirante en el archivo, considera la extracción exitosa y avanza automáticamente al paso 3. Si la IA no puede estructurar la información, muestra un mensaje de error y te permite intentarlo con otro archivo o continuar manualmente.
+
+<Tip>
+  Para mejores resultados de extracción, usa un CV en formato de texto (no escaneado) que incluya claramente tu nombre, cargo, empresa, estudios académicos y habilidades.
+</Tip>
+
+## Siguiente paso
+
+Después de cargar tu perfil, el sistema te lleva a la verificación y edición de tu formación académica.
+
+<Card title="Verificación de formación académica" icon="graduation-cap" href="/guide/academic-background">
+  Revisa, corrige y completa los datos académicos extraídos por la IA antes de continuar.
+</Card>

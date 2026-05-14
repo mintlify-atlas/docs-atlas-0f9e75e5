@@ -1,81 +1,105 @@
 ---
-title: "Quickstart"
-description: "Start building awesome documentation in minutes"
-icon: 'rocket'
+title: "Completa tu primera evaluación VAP en RAP-Rec"
+description: "Sigue los 7 pasos de RAP-Rec para obtener tu radar de competencias, plan semestral adaptativo y ruta académica personalizada en una sola sesión."
 ---
 
-## Get started in three steps
-
-Get your documentation site running locally and make your first customization.
-
-### Step 1: Set up your local environment
-
-<AccordionGroup>
-  <Accordion icon="copy" title="Clone your docs locally">
-    During the onboarding process, you created a GitHub repository with your docs content if you didn't already have one. You can find a link to this repository in your [dashboard](https://dashboard.mintlify.com).
-    
-    To clone the repository locally so that you can make and preview changes to your docs, follow the [Cloning a repository](https://docs.github.com/en/repositories/creating-and-managing-repositories/cloning-a-repository) guide in the GitHub docs.
-  </Accordion>
-  <Accordion icon="rectangle-terminal" title="Start the preview server">
-    1. Install the Mintlify CLI: `npm i -g mint`
-    2. Navigate to your docs directory and run: `mint dev`
-    3. Open `http://localhost:3000` to see your docs live!
-    
-    <Tip>Your preview updates automatically as you edit files.</Tip>
-  </Accordion>
-</AccordionGroup>
-
-### Step 2: Deploy your changes
-
-<AccordionGroup>
-  <Accordion icon="github" title="Install our GitHub app">
-    Install the Mintlify GitHub app from your [dashboard](https://dashboard.mintlify.com/settings/organization/github-app).
-    
-    Our GitHub app automatically deploys your changes to your docs site, so you don't need to manage deployments yourself.
-</Accordion>
-<Accordion icon="palette" title="Update your site name and colors">
-    For a first change, let's update the name and colors of your docs site.
-
-    1. Open `docs.json` in your editor.
-    2. Change the `"name"` field to your project name.
-    3. Update the `"colors"` to match your brand.
-    4. Save and see your changes instantly at `http://localhost:3000`.
-
-    <Tip>Try changing the primary color to see an immediate difference!</Tip>
-  </Accordion>
-</AccordionGroup>
-
-### Step 3: Go live
-
-<Accordion icon="rocket" title="Publish your docs">
-  1. Commit and push your changes.
-  2. Your docs will update and be live in moments!
-</Accordion>
-
-## Next steps
-
-Now that you have your docs running, explore these key features:
-
-<CardGroup cols={2}>
-
-<Card title="Write Content" icon="pen-to-square" href="/essentials/markdown">
-  Learn MDX syntax and start writing your documentation.
-</Card>
-
-<Card title="Customize style" icon="palette" href="/essentials/settings">
-  Make your docs match your brand perfectly.
-</Card>
-
-<Card title="Add code examples" icon="square-code" href="/essentials/code">
-  Include syntax-highlighted code blocks.
-</Card>
-
-<Card title="API documentation" icon="code" href="/api-reference/introduction">
-  Auto-generate API docs from OpenAPI specs.
-</Card>
-
-</CardGroup>
+RAP-Rec te permite completar tu proceso de Validación de Aprendizajes Previos (VAP) en una sola sesión web, sin necesidad de instalar nada. Esta guía te lleva desde la selección de tu programa hasta la obtención de tu reporte de ruta académica personalizada.
 
 <Note>
-  **Need help?** See our [full documentation](https://mintlify.com/docs) or join our [community](https://mintlify.com/community).
+  Antes de comenzar, ten a mano tu hoja de vida actualizada en formato PDF o DOCX. Si no tienes el archivo, puedes completar los datos manualmente en el formulario.
 </Note>
+
+## Proceso completo en 7 pasos
+
+<Steps>
+  <Step title="Accede a la plataforma">
+    Abre RAP-Rec en tu navegador. Verás la pantalla de selección de programa con los 4 programas de posgrado disponibles de la Facultad de Ciencias Humanas.
+  </Step>
+  <Step title="Selecciona tu programa de interés">
+    Haz clic en la tarjeta del programa al que deseas inscribirte o sobre el que tienes interés. Las opciones son:
+
+    - **Maestría en Educación** — 4 semestres, $8.610.000/sem
+    - **Maestría en Innovación Educativa** — 4 semestres, $8.610.000/sem
+    - **Maestría en Educación TIC** — 4 semestres, $8.610.000/sem
+    - **Especialización en Docencia Universitaria** — 2 semestres, $8.600.000/sem
+
+    Al seleccionar, avanzas automáticamente al paso de perfil.
+  </Step>
+  <Step title="Carga tu hoja de vida">
+    En la pantalla de perfil tienes tres opciones:
+
+    - **Cargar PDF o DOCX**: Sube tu CV y la IA extraerá automáticamente tu información.
+    - **Cargar ejemplo**: Usa un perfil de demostración para explorar el sistema.
+    - **Completar manualmente**: Ingresa tus datos directamente en el formulario.
+
+    Si cargas un archivo, la IA de Google Gemini analiza el texto y auto-completa nombre, cargo, empresa, sector, años de experiencia y formación académica.
+  </Step>
+  <Step title="Verifica tu formación académica">
+    En el paso 3, revisa y corrige los datos extraídos por la IA. Puedes añadir o eliminar títulos académicos usando los botones correspondientes. Verifica que cada título tenga institución, año y nivel correcto.
+  </Step>
+  <Step title="Describe tu experiencia específica">
+    Responde 3 preguntas sobre tu experiencia relacionada con el programa seleccionado:
+    1. Procesos de transformación pedagógica
+    2. Diseño de proyectos curriculares o ambientes de aprendizaje
+    3. Integración de TIC en procesos docentes
+
+    Selecciona la opción que mejor describe tu nivel: **Sí, avanzada**, **Básica**, **En aprendizaje** o **No tengo**.
+  </Step>
+  <Step title="Completa la evaluación VAP">
+    Responde una pregunta por cada una de las 5 competencias del Marco VAP. Debes responder **todas** las preguntas para habilitar el botón de envío. El sistema evalúa:
+
+    - **C1** — Comunicación Oral y Escrita en Contextos Educativos
+    - **C2** — Investigación-Intervención en Asuntos Educativos
+    - **C3** — Praxis y Transformación Pedagógica
+    - **C4** — Diseño y Evaluación Curricular
+    - **C5** — Uso de TIC para Enriquecer Procesos Educativos
+
+    Al finalizar, haz clic en **Finalizar Evaluación y Generar Reporte**.
+  </Step>
+  <Step title="Revisa tu ruta académica">
+    El sistema genera tu reporte con:
+    - **Radar de competencias**: visualización de tus puntajes VAP (0–5) en las 5 competencias
+    - **Promedio VAP**: puntaje global de dominio
+    - **Plan semestral adaptativo**: materias por semestre con estado (regular, exonerada o sugerida)
+    - **Ruta académica sugerida**: cursos específicos del catálogo para cerrar tus brechas
+
+    Para ver el **análisis técnico del director**, haz clic en **Vista Director** en la barra superior e ingresa la contraseña institucional.
+  </Step>
+</Steps>
+
+## Lo que obtienes al finalizar
+
+<CardGroup cols={2}>
+  <Card title="Radar de competencias" icon="chart-pie" href="/guide/competency-radar">
+    Gráfico visual de tus niveles de dominio en las 5 competencias VAP evaluadas.
+  </Card>
+  <Card title="Ruta académica personalizada" icon="route" href="/guide/academic-route">
+    Plan semestral con materias regulares, cursos exonerados y asignaturas sugeridas para fortalecer tus brechas.
+  </Card>
+  <Card title="Reporte del director" icon="file-lines" href="/guide/director-report">
+    Análisis técnico con justificaciones para la flexibilización curricular, destinado a los directores de programa.
+  </Card>
+  <Card title="Marco VAP explicado" icon="brain" href="/reference/vap-framework">
+    Comprende en detalle las 5 competencias y cómo el sistema calcula los puntajes.
+  </Card>
+</CardGroup>
+
+## Preguntas frecuentes
+
+<AccordionGroup>
+  <Accordion title="¿Qué formatos de CV acepta el sistema?">
+    RAP-Rec acepta archivos **PDF** y **DOCX** (Word). Para mejores resultados, usa un CV con texto seleccionable. Los PDFs basados en imágenes escaneadas o protegidos con contraseña no pueden procesarse.
+  </Accordion>
+  <Accordion title="¿Qué pasa si la IA no extrae bien mi información?">
+    Puedes corregir manualmente cualquier dato en el paso 3 (Verificación de Perfil). La extracción automática es una ayuda inicial; la información que ingreses manualmente tiene prioridad.
+  </Accordion>
+  <Accordion title="¿Puedo cambiar de programa después de seleccionarlo?">
+    Sí. Usa la barra de progreso en la parte superior para volver al paso 1 (Programa) en cualquier momento y seleccionar un programa diferente.
+  </Accordion>
+  <Accordion title="¿Cómo accedo a la Vista del Director?">
+    Haz clic en el botón **Vista Director** en la barra superior de la página de resultados (paso 7). Ingresa la contraseña institucional cuando se solicite. Esta vista está destinada a los directores académicos de la Facultad.
+  </Accordion>
+  <Accordion title="¿Mis datos se guardan entre sesiones?">
+    El sistema mantiene el estado durante la sesión activa del navegador. Si cierras o recargas la página, necesitarás comenzar el proceso nuevamente. Se recomienda completar la evaluación en una sola sesión.
+  </Accordion>
+</AccordionGroup>

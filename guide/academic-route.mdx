@@ -1,0 +1,111 @@
+---
+title: "Ruta académica: plan semestral y cursos sugeridos"
+description: "Cómo leer el plan semestral adaptativo, los estados de materia (regular, exonerada, sugerida) y los cursos recomendados según tus brechas VAP."
+---
+
+La ruta académica es el resultado central del sistema RAP-Rec. Una vez que la IA evalúa tus competencias VAP, genera un plan semestral personalizado y una lista de cursos específicos del catálogo para cerrar tus brechas. Esta página explica cómo interpretar cada sección.
+
+## Formato de salida de la IA
+
+La función `getAIRecommendation` en `gemini.ts` devuelve un objeto JSON con la siguiente estructura:
+
+```json
+{
+  "mensaje_estudiante": "...",
+  "cursos_sugeridos": ["ID_CURSO_1", "ID_CURSO_2"],
+  "plan_semestral": [
+    {
+      "semestre": 1,
+      "materias": [
+        {
+          "nombre": "Nombre de la materia",
+          "estado": "regular/exonerada/sugerida",
+          "justificacion": "Breve explicación del estado asignado"
+        }
+      ]
+    }
+  ],
+  "analisis_director": "..."
+}
+```
+
+El campo `analisis_director` está reservado para la [Vista del Director](/guide/director-report) y no aparece en la vista del estudiante.
+
+## El mensaje motivacional
+
+Al inicio de la sección de resultados verás el campo `mensaje_estudiante`: un párrafo redactado por la IA que toma en cuenta tu área de profundización y tu objetivo profesional para ofrecerte contexto sobre por qué la ruta fue diseñada de esa manera.
+
+## Cómo leer el plan semestral
+
+<Steps>
+  <Step title="Identifica el número de semestres">
+    El arreglo `plan_semestral` contiene un objeto por semestre. El número de semestres depende del programa que seleccionaste: 4 para las maestrías y 2 para la especialización. Cada objeto incluye el campo `semestre` (número entero) y el arreglo `materias`.
+  </Step>
+  <Step title="Lee el estado de cada materia">
+    Cada materia tiene un campo `estado` que indica su situación en tu ruta personalizada. Consulta la tabla de estados en la sección siguiente para entender qué acción corresponde a cada una.
+  </Step>
+  <Step title="Revisa la justificación">
+    El campo `justificacion` de cada materia es un texto breve que explica por qué la IA le asignó ese estado. La justificación conecta tus puntajes VAP con la decisión curricular correspondiente.
+  </Step>
+  <Step title="Relaciona las materias sugeridas con tus brechas">
+    Las materias en estado `sugerida` reemplazan a materias en estado `exonerada`. Ambas deben aparecer en el mismo semestre para que puedas ver el intercambio propuesto.
+  </Step>
+</Steps>
+
+## Estados de las materias
+
+| Estado     | Color del badge | Significado                                                                 |
+|------------|-----------------|-----------------------------------------------------------------------------|
+| `regular`  | Azul            | Materia estándar del programa; no se modifica respecto al plan original.    |
+| `exonerada`| Rojo            | Materia que el sistema considera no necesaria dado tu perfil previo; se propone omitirla o validarla por VAP. |
+| `sugerida` | Verde           | Materia adicional o de reemplazo recomendada para cerrar una brecha específica detectada en el radar VAP. |
+
+<Note>
+  Los estados `exonerada` y `sugerida` son propuestas del sistema de recomendación, no decisiones académicas vinculantes. El director de programa es quien aprueba cualquier ajuste curricular mediante el proceso formal de flexibilización.
+</Note>
+
+## Los cursos sugeridos
+
+La sección **Ruta Académica Sugerida** muestra las tarjetas de los cursos listados en `cursos_sugeridos`. El sistema incluye un máximo de **4 cursos** del catálogo institucional, seleccionados porque sus `competencias_VAP_primarias` coinciden con las competencias donde obtuviste puntajes menores a 4.0.
+
+Cada tarjeta muestra:
+
+- El nombre del curso y su descripción resumida.
+- Las competencias VAP primarias que desarrolla (etiquetas `C1`–`C5`).
+- Un checkbox para **seleccionar o deseleccionar** el curso en tu ruta.
+- Un botón **Ver Detalle y Requisitos** que abre el panel de detalle del curso.
+
+### Panel de detalle del curso
+
+Al hacer clic en **Ver Detalle y Requisitos**, se abre un panel superpuesto con:
+
+- **Descripción del módulo**: texto completo del campo `descripcion` del curso en el catálogo.
+- **Competencias a desarrollar**: lista de los identificadores VAP primarios del curso.
+- **Relevancia para tu perfil**: texto contextualizado que combina tus habilidades técnicas y el nombre del programa seleccionado.
+
+Cierra el panel con el botón **Cerrar** o haz clic en **Inscribir en Ruta VAP** para confirmar tu interés en el curso.
+
+## Selección de cursos en la ruta
+
+Usa el checkbox en cada tarjeta para marcar los cursos que deseas incluir en tu ruta. El estado de los cursos seleccionados se guarda en la variable `selectedCoursesInRoute` y queda visible también en la Vista del Director, bajo la sección **Ruta Seleccionada por el Estudiante**.
+
+<Tip>
+  Los cursos de `cursos_sugeridos` se seleccionan automáticamente al cargarse el reporte. Puedes desmarcar cualquier curso que no sea relevante para tu plan antes de entregar el reporte al director.
+</Tip>
+
+## Páginas relacionadas
+
+<CardGroup cols={2}>
+  <Card title="Radar de competencias" icon="chart-pie" href="/guide/competency-radar">
+    Entiende los puntajes VAP que determinan qué materias se sugieren y cuáles se exoneran.
+  </Card>
+  <Card title="Reporte del director" icon="file-lines" href="/guide/director-report">
+    El análisis técnico que acompaña el plan semestral para la toma de decisiones académicas.
+  </Card>
+  <Card title="Catálogo de cursos" icon="book-open" href="/reference/course-catalog">
+    Lista completa de cursos disponibles y sus competencias VAP asociadas.
+  </Card>
+  <Card title="Análisis de brechas" icon="chart-bar" href="/reference/gap-analysis">
+    Lógica de cruce entre puntajes VAP y selección de cursos del catálogo.
+  </Card>
+</CardGroup>

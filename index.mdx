@@ -1,133 +1,82 @@
 ---
-title: "Introduction"
-description: "Welcome to the new home for your documentation"
-icon: 'star'
+title: "RAP-Rec: Validación de Aprendizajes Previos con IA"
+description: "Plataforma inteligente de la Universidad Icesi que evalúa competencias docentes y genera rutas académicas personalizadas para aspirantes a posgrado."
 ---
 
-## Setting up
+RAP-Rec es la plataforma de Validación de Aprendizajes Previos (VAP) de la Facultad de Ciencias Humanas de la **Universidad Icesi**. Combina inteligencia artificial con el Marco VAP institucional para evaluar las competencias docentes de cada aspirante y recomendar una ruta académica personalizada dentro de los programas de posgrado disponibles.
 
-Get your documentation site up and running in minutes.
-
-<Card
-  title="Start here"
-  icon="rocket"
-  href="/quickstart"
-  horizontal
->
-  Follow our three step quickstart guide.
-</Card>
-
-## Make it yours
-
-Design a docs site that looks great and empowers your users.
-
-<Columns cols={2}>
-  <Card
-    title="Edit locally"
-    icon="pen-to-square"
-    href="/development"
-  >
-    Edit your docs locally and preview them in real time.
+<CardGroup cols={2}>
+  <Card title="Inicio rápido" icon="rocket" href="/quickstart">
+    Completa tu primera evaluación VAP en minutos y obtén tu ruta académica personalizada.
   </Card>
-  <Card
-    title="Customize your site"
-    icon="palette"
-    href="/essentials/settings"
-  >
-    Customize the design and colors of your site to match your brand.
+  <Card title="Flujo del aspirante" icon="user-graduate" href="/guide/program-selection">
+    Recorre paso a paso el proceso completo: desde la selección del programa hasta el reporte final.
   </Card>
-    <Card
-    title="Set up navigation"
-    icon="map"
-    href="/essentials/navigation"
-  >
-    Organize your docs to help users find what they need and succeed with your product.
+  <Card title="Marco VAP" icon="brain" href="/reference/vap-framework">
+    Conoce las 5 competencias core que evalúa el sistema y cómo se calculan los puntajes.
   </Card>
-  <Card
-    title="API documentation"
-    icon="terminal"
-    href="/api-reference/introduction"
-  >
-    Auto-generate API documentation from OpenAPI specifications.
+  <Card title="Referencia técnica" icon="code" href="/reference/architecture">
+    Explora la arquitectura, el stack tecnológico y la lógica de recomendación del sistema.
   </Card>
-</Columns>
+</CardGroup>
 
-## Create beautiful pages
+## ¿Cómo funciona RAP-Rec?
 
-Everything you need to create world-class documentation.
+RAP-Rec guía a cada aspirante a través de un proceso estructurado de 7 pasos que culmina en un reporte técnico personalizado.
 
-<Columns cols={2}>
-  <Card
-    title="Write with MDX"
-    icon="pen-fancy"
-    href="/essentials/markdown"
-  >
-    Use MDX to style your docs pages.
-  </Card>
-  <Card
-    title="Code samples"
-    icon="code"
-    href="/essentials/code"
-  >
-    Add sample code to demonstrate how to use your product.
-  </Card>
-  <Card
-    title="Images"
-    icon="image"
-    href="/essentials/images"
-  >
-    Display images and other media.
-  </Card>
-  <Card
-    title="Reusable snippets"
-    icon="recycle"
-    href="/essentials/reusable-snippets"
-  >
-    Write once and reuse across your docs.
-  </Card>
-</Columns>
+<Steps>
+  <Step title="Selecciona tu programa">
+    Elige entre los 4 programas de posgrado disponibles en la Facultad de Ciencias Humanas: Maestría en Educación, Maestría en Innovación Educativa, Maestría en Educación TIC o Especialización en Docencia Universitaria.
+  </Step>
+  <Step title="Carga tu hoja de vida">
+    Sube tu CV en formato PDF o DOCX. La IA de Google Gemini extrae automáticamente tu experiencia, formación y habilidades técnicas.
+  </Step>
+  <Step title="Completa la evaluación VAP">
+    Responde el banco de preguntas basado en las 5 competencias core del Marco VAP: Comunicación, Investigación, Praxis Pedagógica, Diseño Curricular y Uso de TIC.
+  </Step>
+  <Step title="Recibe tu ruta académica">
+    El algoritmo de Gap Analysis cruza tus puntajes VAP con el catálogo de cursos y genera un plan semestral adaptativo con justificaciones para la flexibilización curricular.
+  </Step>
+</Steps>
 
-## Make your content agent ready
+## Programas disponibles
 
-Make your docs work for humans and AI agents alike.
+RAP-Rec soporta los siguientes programas de la Facultad de Ciencias Humanas:
 
-<Columns cols={2}>
-  <Card
-    title="Prompt component"
-    icon="robot"
-    href="/agent-ready/prompt"
-  >
-    Embed shareable AI prompts readers can copy or open in Cursor.
+<CardGroup cols={2}>
+  <Card title="Maestría en Educación" icon="book-open">
+    4 semestres · Énfasis en Pedagogía, IA+TIC y Currículo
   </Card>
-  <Card
-    title="Visibility"
-    icon="eye"
-    href="/agent-ready/visibility"
-  >
-    Show different content to humans and agents reading your docs.
+  <Card title="Maestría en Innovación Educativa" icon="lightbulb">
+    4 semestres · Énfasis en ABP y Pensamiento Emprendedor
   </Card>
-  <Card
-    title="Contextual menu"
-    icon="bolt"
-    href="/agent-ready/contextual"
-  >
-    Give readers one-click access to Claude, ChatGPT, Cursor, and more.
+  <Card title="Maestría en Educación TIC" icon="computer">
+    4 semestres · Énfasis en TIC, LMS y Diseño Curricular
   </Card>
-  <Card
-    title="AI coding tools"
-    icon="wand-magic-sparkles"
-    href="/ai-tools/claude-code"
-  >
-    Set up Claude Code, Cursor, or Windsurf with Mintlify's skill.
+  <Card title="Especialización en Docencia Universitaria" icon="chalkboard">
+    2 semestres · Énfasis en Didáctica y Evaluación
   </Card>
-</Columns>
+</CardGroup>
 
-## Need inspiration?
+## Capacidades principales
 
-<Card
-  title="See complete examples"
-  icon="stars"
-  href="https://mintlify.com/customers"
->
-  Browse our showcase of exceptional documentation sites.
-</Card>
+<CardGroup cols={3}>
+  <Card title="Extracción de perfil con IA" icon="file-import">
+    Procesa PDF y DOCX con Google Gemini para auto-completar el perfil profesional del aspirante.
+  </Card>
+  <Card title="Evaluación VAP automatizada" icon="clipboard-check">
+    Evalúa las 5 competencias docentes con puntajes de 1.0 a 5.0 y justificaciones técnicas.
+  </Card>
+  <Card title="Radar de competencias" icon="chart-pie">
+    Visualiza el perfil de dominio del aspirante mediante un gráfico radar interactivo.
+  </Card>
+  <Card title="Gap Analysis" icon="chart-bar">
+    Identifica brechas competenciales y selecciona cursos del catálogo para cerrarlas.
+  </Card>
+  <Card title="Plan semestral adaptativo" icon="calendar">
+    Genera un plan de estudios con materias regulares, exoneradas y sugeridas.
+  </Card>
+  <Card title="Vista del Director" icon="user-tie">
+    Reporte técnico con justificaciones para la flexibilización curricular institucional.
+  </Card>
+</CardGroup>

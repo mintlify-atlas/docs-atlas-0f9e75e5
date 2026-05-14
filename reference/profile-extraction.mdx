@@ -1,0 +1,161 @@
+---
+title: "Extracción de perfil desde hoja de vida con IA"
+description: "Documentación del pipeline que convierte un archivo PDF o DOCX en un objeto UserProfile estructurado usando pdfjs-dist, mammoth y Google Gemini AI."
+---
+
+La extracción de perfil es el primer paso de procesamiento automático en RAP-Rec. Cuando cargas tu hoja de vida, el sistema lee el archivo en el navegador, convierte su contenido en texto plano y lo envía a Google Gemini, que devuelve un objeto `UserProfile` estructurado listo para auto-completar el formulario.
+
+## Formatos soportados
+
+<CardGroup cols={2}>
+  <Card title="PDF (.pdf)" icon="file-pdf">
+    Procesado con `pdfjs-dist` v5.7.284 página por página. Funciona mejor con PDFs de texto seleccionable.
+  </Card>
+  <Card title="DOCX (.docx)" icon="file-word">
+    Procesado con `mammoth.extractRawText`. Extrae el texto plano del documento Word.
+  </Card>
+</CardGroup>
+
+<Warning>
+  Los PDFs basados en imágenes escaneadas (sin texto seleccionable) no pueden procesarse correctamente. Si tu CV es una imagen, el sistema no podrá extraer el texto y te mostrará un error. En ese caso, completa tus datos manualmente en el formulario.
+</Warning>
+
+## Pipeline de extracción
+
+El siguiente proceso se ejecuta completamente en el navegador antes de cualquier llamada a la API de Gemini:
+
+<Steps>
+  <Step title="Carga del archivo">
+    El aspirante selecciona un archivo PDF o DOCX en el paso 2 de la interfaz. El sistema detecta el tipo de archivo por su tipo MIME o por la extensión del nombre del archivo.
+  </Step>
+  <Step title="Procesamiento según formato">
+    Según el tipo detectado, se aplica la librería correspondiente:
+
+    - **PDF**: `pdfjs-dist` carga el documento y extrae el texto de cada página de forma secuencial, concatenando el contenido.
+    - **DOCX**: `mammoth.extractRawText` convierte el documento Word en texto plano limpio.
+  </Step>
+  <Step title="Limpieza del texto">
+    El texto extraído pasa por normalización de espacios en blanco: múltiples saltos de línea y espacios consecutivos se compactan para reducir ruido antes del análisis.
+  </Step>
+  <Step title="Validación de longitud mínima">
+    Si el texto resultante tiene menos de **30 caracteres**, el sistema lanza un error e indica al usuario que intente con otro archivo. Este umbral filtra documentos vacíos o PDFs que no contienen texto extraíble.
+  </Step>
+  <Step title="Truncado a 8 000 caracteres">
+    El texto se trunca a los primeros 8 000 caracteres antes de enviarse a Gemini. Esto limita el costo de tokens y mantiene tiempos de respuesta razonables para CVs extensos.
+
+    ```typescript
+    const truncatedText = text.substring(0, 8000);
+    ```
+  </Step>
+  <Step title="Llamada a Gemini AI">
+    El texto truncado se envía a `extractProfile` con `temperature: 0.1` y `responseMimeType: "application/json"`. Gemini analiza el contenido actuando como reclutador experto y devuelve el perfil en formato JSON.
+  </Step>
+  <Step title="Construcción del objeto UserProfile">
+    La función `extractProfile` parsea la respuesta JSON, asigna un UUID al campo `id` con `crypto.randomUUID()` y normaliza todos los campos (valores faltantes se rellenan con `""` o `[]`). El objeto `UserProfile` resultante queda disponible en el estado de la aplicación.
+  </Step>
+</Steps>
+
+## Interfaz `UserProfile`
+
+Este es el contrato de datos que devuelve `extractProfile` y que recorre todo el sistema desde la extracción hasta la generación de la ruta académica:
+
+```typescript
+export interface UserProfile {
+  id: string; // UUID generado con crypto.randomUUID()
+  nombre: string;
+  email: string;
+  phone: string;
+
+  // Trayectoria profesional
+  years_experience: number;
+  current_position: string;
+  empresa: string;
+  industry: string;
+  education_level: string;
+  technical_skills: string[];
+  certifications: string[];
+  relevant_projects: string[];
+
+  // Campos específicos de VAP-Rec
+  area_profundizacion: string;
+  contexto_aplicacion: string;
+  objetivo_profesional: string;
+
+  motivation: string;
+
+  // Campos opcionales para lógica interna y UI
+  resumen?: string;
+  formacion?: {
+    titulo: string;
+    institucion: string;
+    anio: string;
+    nivel: string;
+  }[];
+  nivel_jerarquico?: string;
+  respuestas_experiencia?: {
+    transformacion_pedagogica?: string;
+    diseño_curricular?: string;
+    integracion_tic?: string;
+  };
+}
+```
+
+<Note>
+  Los campos marcados con `?` son opcionales. Si Gemini no puede inferir su valor desde el texto del CV, se omiten del objeto resultante o se inicializan como `{}` en el caso de `respuestas_experiencia`.
+</Note>
+
+## Comportamiento de auto-completado
+
+Una vez que `extractProfile` devuelve el `UserProfile`, la aplicación propaga los datos extraídos a los pasos siguientes:
+
+<AccordionGroup>
+  <Accordion title="Paso 3 — Verificación de perfil">
+    Todos los campos del `UserProfile` se cargan en el formulario de verificación: nombre, cargo, empresa, sector, años de experiencia, nivel educativo, formación académica (`formacion[]`), habilidades técnicas, certificaciones y proyectos relevantes. Puedes editar cualquier campo antes de continuar.
+  </Accordion>
+  <Accordion title="Paso 4 — Experiencia específica">
+    Los campos de `respuestas_experiencia` auto-completan las tres preguntas del paso 4:
+    - `transformacion_pedagogica` → pregunta sobre procesos de transformación pedagógica
+    - `diseño_curricular` → pregunta sobre diseño de proyectos curriculares
+    - `integracion_tic` → pregunta sobre integración de TIC en docencia
+
+    Los valores posibles que extrae Gemini son: `"Sí, avanzada"`, `"Básica"`, `"En aprendizaje"` o `"No tengo"`.
+  </Accordion>
+  <Accordion title="Paso 5 — Motivaciones">
+    El campo `motivation` del perfil extraído se carga automáticamente en el área de texto de motivaciones del paso 5. Puedes editarlo o reemplazarlo completamente.
+  </Accordion>
+</AccordionGroup>
+
+<Tip>
+  Revisa siempre los datos auto-completados en el paso 3 antes de continuar. La extracción por IA tiene alta precisión, pero puede cometer errores en CVs con formatos complejos, tablas o columnas múltiples.
+</Tip>
+
+## Manejo de errores
+
+| Situación | Comportamiento |
+|-----------|---------------|
+| PDF basado en imagen o sin texto seleccionable | Error con mensaje indicando intentar con otro archivo |
+| Texto extraído menor a 30 caracteres | Error con mensaje de archivo insuficiente |
+| Fallo de extracción después de 2 reintentos | El usuario puede continuar completando el formulario manualmente |
+| Cuota de API excedida (HTTP 429) | Mensaje específico: `"Límite de cuota alcanzado. Por favor, espera un minuto."` |
+| Error de conexión con Gemini | Mensaje: `"Error crítico de conexión con la IA. Por favor, refresca la página e intenta de nuevo."` |
+
+La función `extractProfile` reintenta automáticamente hasta 2 veces con retardo exponencial de 1 500 ms entre intentos. Después de agotar los reintentos, lanza el error al componente de UI para que lo muestre al usuario.
+
+---
+
+## Páginas relacionadas
+
+<CardGroup cols={2}>
+  <Card title="Integración con Gemini AI" icon="microchip" href="/reference/gemini-integration">
+    Referencia completa de las funciones `extractProfile`, `evaluateVAP` y `getAIRecommendation`.
+  </Card>
+  <Card title="Carga de hoja de vida" icon="file-arrow-up" href="/guide/profile-upload">
+    Guía del paso 2: cómo cargar tu CV y qué opciones tienes si no tienes el archivo.
+  </Card>
+  <Card title="Verificación de perfil" icon="user-check" href="/guide/academic-background">
+    Guía del paso 3: cómo revisar y corregir los datos extraídos automáticamente.
+  </Card>
+  <Card title="Marco VAP" icon="brain" href="/reference/vap-framework">
+    Las 5 competencias que el sistema evalúa a partir del perfil extraído.
+  </Card>
+</CardGroup>

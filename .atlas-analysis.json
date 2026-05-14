@@ -1,0 +1,87 @@
+{
+  "projectType": "saas",
+  "projectName": "RAP-Rec: Sistema de Recomendación VAP",
+  "projectDescription": "Plataforma inteligente para la Facultad de Ciencias Humanas de la Universidad Icesi que automatiza la validación de aprendizajes previos (VAP), evalúa competencias docentes y genera rutas académicas personalizadas para aspirantes a posgrado mediante IA.",
+  "theme": "almond",
+  "primaryColor": "#003087",
+  "lightColor": "#F47920",
+  "darkColor": null,
+  "navigation": {
+    "tabs": [
+      {
+        "tab": "Guía de Usuario",
+        "groups": [
+          {
+            "group": "Introducción",
+            "pages": ["introduction", "quickstart"]
+          },
+          {
+            "group": "Flujo del Aspirante",
+            "pages": [
+              "guide/program-selection",
+              "guide/profile-upload",
+              "guide/academic-background",
+              "guide/experience",
+              "guide/motivations",
+              "guide/vap-evaluation"
+            ]
+          },
+          {
+            "group": "Resultados y Reporte",
+            "pages": [
+              "guide/competency-radar",
+              "guide/academic-route",
+              "guide/director-report"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "Referencia Técnica",
+        "groups": [
+          {
+            "group": "Arquitectura",
+            "pages": [
+              "reference/architecture",
+              "reference/tech-stack",
+              "reference/configuration"
+            ]
+          },
+          {
+            "group": "Lógica de Recomendación",
+            "pages": [
+              "reference/vap-framework",
+              "reference/gap-analysis",
+              "reference/course-catalog"
+            ]
+          },
+          {
+            "group": "Integración con IA",
+            "pages": [
+              "reference/gemini-integration",
+              "reference/profile-extraction"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "keyFeatures": [
+    "Carga inteligente de Hoja de Vida (PDF/DOCX) con extracción automática de perfil vía Google Gemini AI",
+    "Evaluación de 5 competencias VAP (Comunicación, Investigación, Praxis, Currículo, TIC) con banco de preguntas estructurado",
+    "Radar de competencias interactivo (Chart.js) para visualización del nivel de dominio del aspirante",
+    "Algoritmo de Gap Analysis que cruza puntajes VAP con catálogo de cursos para recomendar rutas académicas personalizadas",
+    "Vista del Director con reporte técnico detallado y justificaciones para flexibilización curricular",
+    "Plan semestral adaptativo con estados por materia (regular, exonerada, sugerida)",
+    "Soporte para 4 programas de posgrado: 3 Maestrías y 1 Especialización de la Facultad de Ciencias Humanas"
+  ],
+  "publicApiSurface": [
+    "extractProfile(text: string): Promise<UserProfile> — Extrae perfil profesional de texto CV usando Gemini AI",
+    "evaluateVAP(profile: UserProfile, answers: Record<string, string>): Promise<VAPEvaluation[]> — Evalúa las 5 competencias VAP (C1-C5) del aspirante",
+    "getAIRecommendation(profile: UserProfile, evaluation: VAPEvaluation[]): Promise<RecommendationResult> — Genera ruta académica personalizada con plan semestral y análisis del director",
+    "VAP_COMPETENCIES: Competency[] — Catálogo de las 5 competencias core del marco VAP",
+    "COURSE_CATALOG: Course[] — Catálogo de cursos con competencias VAP primarias para cross-matching",
+    "UserProfile interface — Estructura del perfil del aspirante con trayectoria profesional y académica",
+    "VAPEvaluation interface — Resultado de evaluación por competencia con puntaje (1.0-5.0), nivel y justificación"
+  ]
+}
